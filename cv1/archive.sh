@@ -7,8 +7,9 @@ code="B$(($(date +'%y')-1))1"
 else
 code="B$(($(date +'%y')-1))2"
 fi
-datum=$(date +'%Y-%m-%d')
-cas=$(date +'%H:%M:%S')
+whole=$(date +'%Y-%m-%dx%H:%M:%S')
+datum=$(echo "$whole" | cut -d'x' -f1)
+cas=$(echo "$whole" | cut -d'x' -f2)
 dirname=$(echo "${code}@${datum}_${cas}")
 mkdir -p "$dirname"
 
