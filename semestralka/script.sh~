@@ -52,7 +52,7 @@ function video {
 			cat <<-PLOT
 				set terminal png
 				set output "$(printf "$FMT" $i)"
-				plot [0:$LINES][$YRANGE] '-' with lines t '', "${TMP}/dots" w p  
+				plot [0:$LINES][$YRANGE] '-' with lines t '' 
 				PLOT
 			head -n $i "$DATA"
 		} | gnuplot
