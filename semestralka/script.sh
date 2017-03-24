@@ -14,6 +14,7 @@ USAGE+=("           -h  this help")
 ECODE=1
 VERBOSE=0
 OUTPUT=anim.mp4
+DOTS=100
 
 # Funkce
 
@@ -28,15 +29,16 @@ function test_arg {
 	[ -s "$1" ] || err "Data file '$1' is empty"
 	#test if last field (value) is in correct format
 	#awk -F " " '{print $NF}' "$1" | egrep -v '^-?([0-9]+|[0-9]*\.[0-9]+)$' && err "Bad data format in '$1'"
-        #egrep -v '^-?([0-9]+|[0-9]*\.[0-9]+)$' "$1" && err "Bad data format in '$1'"
+        egrep -v '^[0-9]+ -?([0-9]+|[0-9]*\.[0-9]+)$' "$1" && err "Bad data format in '$1'"
 
 }
 
 function video {
 	test_arg "$1"
 	DATA=$1
+        verbose "Using modulo $DOTS for points"
 	#create file with dots using awk and row numbers
-	awk 'NR%100==0 {print $0}' "$1">"${TMP}/dots"
+	awk -v DTCOUNT="$DOTS" 'NR%DTCOUNT==0 {print $0}' "$1">"${TMP}/dots"
 
 	# Limity podle datoveho souboru
 	LINES=$(wc -l <"$DATA")
@@ -66,12 +68,13 @@ function video {
 
 ##############################
 # Zpracovani prepinacu
-while getopts vho: opt
+while getopts vhod: opt
 do
 	case $opt in
 		v) ((VERBOSE++));;
 		h) printf "%s\n" "$USAGE"; ECODE=0; exit ;;
 		o) OUTPUT=$OPTARG;;
+                d) DOTS=$OPTARG;;
 		\?) err "$USAGE";
 	esac
 done
