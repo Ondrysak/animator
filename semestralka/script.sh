@@ -15,7 +15,9 @@ ECODE=1
 VERBOSE=0
 OUTPUT=anim.mp4
 DOTS=10
+SPEED=1
 TIMEFORMAT='[%Y/%m/%d %H:%M:%S]'
+DURATION=''
 # Funkce
 
 function verbose { ((VERBOSE)) && printf "$0[debug]: %s\n" "$@" >&2; }
@@ -47,9 +49,16 @@ function video {
 	verbose "$arg has $YRANGE range"
 	FMT=$TMP/%0${#LINES}d.png
 	verbose "tmp file FMT set to $FMT"
-        verbose "timeformat set to $TIMEFORMAT"	
+        verbose "timeformat set to $TIMEFORMAT"
+        verbose "speed set to $SPEED"	
         # Vygenerovat snimky animace
-	for ((i=1;i<=LINES;i++))
+        local i
+        local k
+        local float
+        i=1
+        k=1
+        float=1
+	while [ $i -le $LINES ]
 	do
 		{
 			cat <<-PLOT
@@ -59,22 +68,34 @@ function video {
                                 set yrange [$YRANGE]
                                 set format x"%H:%M"
                                 set grid
-                                set output "$(printf "$FMT" $i)"
+                                set output "$(printf "$FMT" $k)"
 				plot '-' using 1:3 with lines t '', "${TMP}/dots" using 1:3 w p t '' 
 				PLOT
 			head -n $i "$DATA"
 		} | gnuplot
 		((p=100*i/LINES,p%10==0?first:(first=1,0))) && { vverbose "Done: $p%"; first=0; }
-	done
+	        float=$(echo "$float+$SPEED" | bc)
+                i=$(echo "$float/1" | bc)
+                k=$(($k+1))
+        done
         verbose "GNUPLOT done, ffmpeg comes into play"
 	# Spojit snimky do videa
-	ffmpeg -y -i "$FMT" -- "$DATA.$OUTPUT" >/dev/null 2>/dev/null
+
+	if [[ -z "$DURATION" ]]; then
+        ffmpeg -y -i "$FMT" -- "$DATA.$OUTPUT" >/dev/null 2>/dev/null
+        else
+        FPS=$(echo "($LINES)/($DURATION*$SPEED)" | bc -l)
+        verbose "Calculated FPS based on speed and duration is $FPS"
+        ffmpeg -framerate $FPS -y -i "$FMT" -- "$DATA.$OUTPUT" >/dev/null 2>/dev/null
+        fi
+	
+
 }
 
 
 ##############################
 # Zpracovani prepinacu
-while getopts vhodt: opt
+while getopts vho:d:t:s:T: opt
 do
 	case $opt in
 		v) ((VERBOSE++));;
@@ -82,6 +103,8 @@ do
 		o) OUTPUT=$OPTARG;;
                 d) DOTS=$OPTARG;;
                 t) TIMEFORMAT=$OPTARG;;
+                s) SPEED=$OPTARG;;
+                T) DURATION=$OPTARG;;
 		\?) err "$USAGE";
 	esac
 done
