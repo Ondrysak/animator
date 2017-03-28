@@ -6,6 +6,7 @@ s#^<tr><th>země</th><th>\(.*\)</th><th>\(.*\)</th><th>\(.*\)</th><th>\(.*\)</th
 /^<tr><td>Austrálie<\/td>/ s#<tr>##g;
 /^<td>Austrálie<\/td>/ s#<\/td>#|#g;
 /^<td>Austrálie/ s#<td[^>]*>##g;
+s#\n\n$#\n#
 /^Austrálie/ s#|\n#\n#gp;
 
 
