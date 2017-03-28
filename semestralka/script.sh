@@ -14,8 +14,8 @@ USAGE+=("           -h  this help")
 ECODE=1
 VERBOSE=0
 OUTPUT=anim.mp4
-DOTS=100
-
+DOTS=10
+TIMEFORMAT='[%Y/%m/%d %H:%M:%S]'
 # Funkce
 
 function verbose { ((VERBOSE)) && printf "$0[debug]: %s\n" "$@" >&2; }
@@ -28,8 +28,8 @@ function test_arg {
 	[ -r "$1" ] || err "Data file '$1' is not readable"
 	[ -s "$1" ] || err "Data file '$1' is empty"
 	#test if last field (value) is in correct format
-	#awk -F " " '{print $NF}' "$1" | egrep -v '^-?([0-9]+|[0-9]*\.[0-9]+)$' && err "Bad data format in '$1'"
-        egrep -v '^[0-9]+ -?([0-9]+|[0-9]*\.[0-9]+)$' "$1" && err "Bad data format in '$1'"
+	awk -F " " '{print $NF}' "$1" | egrep -v '^-?([0-9]+|[0-9]*\.[0-9]+)$' && err "Bad data format in '$1'"
+        #egrep -v '^[0-9]+ -?([0-9]+|[0-9]*\.[0-9]+)$' "$1" && err "Bad data format in '$1'"
 
 }
 
@@ -47,20 +47,26 @@ function video {
 	verbose "$arg has $YRANGE range"
 	FMT=$TMP/%0${#LINES}d.png
 	verbose "tmp file FMT set to $FMT"
-	# Vygenerovat snimky animace
+        verbose "timeformat set to $TIMEFORMAT"	
+        # Vygenerovat snimky animace
 	for ((i=1;i<=LINES;i++))
 	do
 		{
 			cat <<-PLOT
 				set terminal png
-				set output "$(printf "$FMT" $i)"
-				plot [0:$LINES][$YRANGE] '-' with lines t '', "${TMP}/dots" w p  
+                                set timefmt "$TIMEFORMAT"
+				set xdata time
+                                set yrange [$YRANGE]
+                                set format x"%H:%M"
+                                set grid
+                                set output "$(printf "$FMT" $i)"
+				plot '-' using 1:3 with lines t '', "${TMP}/dots" using 1:3 w p t '' 
 				PLOT
 			head -n $i "$DATA"
 		} | gnuplot
 		((p=100*i/LINES,p%10==0?first:(first=1,0))) && { vverbose "Done: $p%"; first=0; }
 	done
-
+        verbose "GNUPLOT done, ffmpeg comes into play"
 	# Spojit snimky do videa
 	ffmpeg -y -i "$FMT" -- "$DATA.$OUTPUT" >/dev/null 2>/dev/null
 }
@@ -68,13 +74,14 @@ function video {
 
 ##############################
 # Zpracovani prepinacu
-while getopts vhod: opt
+while getopts vhodt: opt
 do
 	case $opt in
 		v) ((VERBOSE++));;
 		h) printf "%s\n" "$USAGE"; ECODE=0; exit ;;
 		o) OUTPUT=$OPTARG;;
                 d) DOTS=$OPTARG;;
+                t) TIMEFORMAT=$OPTARG;;
 		\?) err "$USAGE";
 	esac
 done
