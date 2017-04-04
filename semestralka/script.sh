@@ -137,18 +137,24 @@ do
         #maybe could a problem to do this when using absolute path
 	FIRSTDATE="$(head -n1 $arg | sed 's/ [^\ ]*$//')"
         #check return code
-        echo $(./dates.pl "$TIMEFORMAT" "$FIRSTDATE") "${arg}">>${TMP}/unsorted
+        #echo $(./dates.pl "$TIMEFORMAT" "$FIRSTDATE") "${arg}">>${TMP}/unsorted
+        epoch=$(./dates.pl "$TIMEFORMAT" "$FIRSTDATE") || err "Date on first line of $arg is not in correct format"
+        echo "$epoch" "$arg">>${TMP}/unsorted
+        
         #cat "$arg">>"${TMP}/merge"
 done
 
 cat ${TMP}/unsorted | sort -n >${TMP}/sorted
 
 
+verbose "Merging input files"
+
 while read line; do
   filename=$(echo $line | awk '{print $NF}')
   cat "$filename">>"${TMP}/merge"
 done <${TMP}/sorted
 
+verbose "Files merged in  ${TMP}/merge"
 
 
 video "${TMP}/merge"
