@@ -24,4 +24,4 @@ my $trp = DateTime::Format::Strptime->new(
 
 my $dt = $trp->parse_datetime($ARGV[1]);
 
-print $dt->epoch, "\n";
+print $dt->epoch;

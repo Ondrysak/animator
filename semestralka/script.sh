@@ -16,6 +16,7 @@ VERBOSE=0
 OUTPUT=anim.mp4
 DOTS=10
 SPEED=1
+#change time default format to [%Y-%m-%d %H:%M:%S]
 TIMEFORMAT='[%Y/%m/%d %H:%M:%S]'
 DURATION=''
 
@@ -133,8 +134,22 @@ for arg
 do
 	verbose "Processing: $arg"
         test_arg "$arg"
-	cat "$arg">>"${TMP}/merge"
+        #maybe could a problem to do this when using absolute path
+	FIRSTDATE="$(head -n1 $arg | sed 's/ [^\ ]*$//')"
+        #check return code
+        echo $(./dates.pl "$TIMEFORMAT" "$FIRSTDATE") "${arg}">>${TMP}/unsorted
+        #cat "$arg">>"${TMP}/merge"
 done
-#video "${TMP}/merge"
 
+cat ${TMP}/unsorted | sort -n >${TMP}/sorted
+
+
+while read line; do
+  filename=$(echo $line | awk '{print $NF}')
+  cat "$filename">>"${TMP}/merge"
+done <${TMP}/sorted
+
+
+
+video "${TMP}/merge"
 ECODE=0
