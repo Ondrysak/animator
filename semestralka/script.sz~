@@ -127,14 +127,12 @@ esac
 # Osetreni parametru
 [ $# -ge 1 ] || err "Arguments missing" "${USAGE[@]}"
 
-
-
 for arg
 do
 	verbose "Processing: $arg"
         test_arg "$arg"
 	cat "$arg">>"${TMP}/merge"
 done
-#video "${TMP}/merge"
+video "${TMP}/merge"
 
 ECODE=0
