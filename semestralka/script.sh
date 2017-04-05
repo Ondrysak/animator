@@ -20,6 +20,8 @@ SPEED=1
 TIMEFORMAT='[%Y/%m/%d %H:%M:%S]'
 DURATION=''
 CHECK=0
+YMIN=auto
+YMAX=auto
 # Funkce
 
 function verbose { ((VERBOSE)) && printf "$0[debug]: %s\n" "$@" >&2; }
@@ -46,7 +48,24 @@ function video {
 	# Limity podle datoveho souboru
 	LINES=$(wc -l <"$DATA")
 	verbose "$1 has $LINES lines"
-	YRANGE=$( awk -F " " '{print $NF}' "$DATA" | sort -n | sed -n '1p;$p' | paste -d: -s)
+        #ymin ymax dle parametru
+        if [ "$YMIN" = auto ]; then
+	TMPYMIN=$( awk -F " " '{print $NF}' "$DATA" | sort -n | sed -n '1p')
+        elif [ "$YMIN" = min ]; then
+        TMPYMIN=$( awk -F " " '{print $NF}' "$DATA" | sort -n | sed -n '1p')
+        else
+        TMPYMIN="$YMIN"
+        fi
+
+        if [ "$YMAX" = auto ]; then
+        TMPYMAX=$( awk -F " " '{print $NF}' "$DATA" | sort -n | sed -n '$p')
+        elif [ "$YMAX" = max ]; then
+        TMPYMAX=$( awk -F " " '{print $NF}' "$DATA" | sort -n | sed -n '$p')
+        else
+        TMPYMAX="$YMAX"
+        fi
+
+	YRANGE=$( echo "${TMPYMIN}:${TMPYMAX}")
 	verbose "$1 has $YRANGE range"
 	FMT=$TMP/%0${#LINES}d.png
 	verbose "tmp file FMT set to $FMT"
@@ -96,7 +115,7 @@ function video {
 
 ##############################
 # Zpracovani prepinacu
-while getopts vho:d:t:s:T:C opt
+while getopts vho:d:t:s:T:Cy:Y: opt
 do
 	case $opt in
 		v) ((VERBOSE++));;
@@ -107,6 +126,8 @@ do
                 s) SPEED=$OPTARG;;
                 T) DURATION=$OPTARG;;
                 C) CHECK=1;;
+                y) YMIN=$OPTARG;;
+                Y) YMAX=$OPTARG;;
 		\?) err "$USAGE";
 	esac
 done
@@ -165,5 +186,8 @@ if [ "$CHECK" = 1 ]; then
       epoch=$(./dates.pl "$TIMEFORMAT" "$FIRSTDATE") || err "Date on $k line of ${tmp}/merge is not in correct format"
    done <${TMP}/merge;
 fi
+
+#check all parametres if they collide or anything
+
 video "${TMP}/merge"
 ECODE=0
