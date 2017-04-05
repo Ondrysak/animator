@@ -19,7 +19,7 @@ SPEED=1
 #change time default format to [%Y-%m-%d %H:%M:%S]
 TIMEFORMAT='[%Y/%m/%d %H:%M:%S]'
 DURATION=''
-
+CHECK=0
 # Funkce
 
 function verbose { ((VERBOSE)) && printf "$0[debug]: %s\n" "$@" >&2; }
@@ -96,7 +96,7 @@ function video {
 
 ##############################
 # Zpracovani prepinacu
-while getopts vho:d:t:s:T: opt
+while getopts vho:d:t:s:T:C opt
 do
 	case $opt in
 		v) ((VERBOSE++));;
@@ -106,6 +106,7 @@ do
                 t) TIMEFORMAT=$OPTARG;;
                 s) SPEED=$OPTARG;;
                 T) DURATION=$OPTARG;;
+                C) CHECK=1;;
 		\?) err "$USAGE";
 	esac
 done
@@ -154,8 +155,15 @@ while read line; do
   cat "$filename">>"${TMP}/merge"
 done <${TMP}/sorted
 
-verbose "Files merged in  ${TMP}/merge"
-
-
+verbose "Files merged in  ${TMP}/merge $#"
+k=0
+if [ "$CHECK" = 1 ]; then
+   while read line; do
+      k=$(( $k + 1 ))
+      verbose "Checking line $k of ${TMP}/merge"
+      FIRSTDATE="$(echo $line | sed 's/ [^\ ]*$//')"
+      epoch=$(./dates.pl "$TIMEFORMAT" "$FIRSTDATE") || err "Date on $k line of ${tmp}/merge is not in correct format"
+   done <${TMP}/merge;
+fi
 video "${TMP}/merge"
 ECODE=0
