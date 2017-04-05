@@ -22,6 +22,7 @@ DURATION=''
 CHECK=0
 YMIN=auto
 YMAX=auto
+NAME=dots
 # Funkce
 
 function verbose { ((VERBOSE)) && printf "$0[debug]: %s\n" "$@" >&2; }
@@ -38,6 +39,19 @@ function test_arg {
         #egrep -v '^[0-9]+ -?([0-9]+|[0-9]*\.[0-9]+)$' "$1" && err "Bad data format in '$1'"
 
 }
+
+function max_folder {
+  max=0
+  for file in *
+  do
+    temp=$(echo $file | grep -E "^$1_[0-9]+$" | sed "s/${1}_//")
+    [[ -d $file  ]] && [[ $max -lt $temp ]] && max=$temp
+  done
+  max=$(($max + 1))
+  mkdir "${1}_${max}" ||  err "Could not create folder ${1}_${max}"
+  echo "${1}_${max}"
+}
+
 
 function video {
 	DATA=$1
@@ -100,13 +114,14 @@ function video {
         done
         verbose "GNUPLOT done, ffmpeg comes into play"
 	# Spojit snimky do videa
-
+        mkdir $NAME 2>/dev/null || NAME=$(max_folder $NAME)
+        
 	if [[ -z "$DURATION" ]]; then
-        ffmpeg -y -i "$FMT" -- "${PWD}/${OUTPUT}" >/dev/null 2>/dev/null
+        ffmpeg -y -i "$FMT" -- "${PWD}/${NAME}/${OUTPUT}" >/dev/null 2>/dev/null
         else
         FPS=$(echo "($LINES)/($DURATION*$SPEED)" | bc -l)
         verbose "Calculated FPS based on speed and duration is $FPS"
-        ffmpeg -framerate $FPS -y -i "$FMT" -- "${PWD}.${OUTPUT}" >/dev/null 2>/dev/null
+        ffmpeg -framerate $FPS -y -i "$FMT" -- "${PWD}/${NAME}/${OUTPUT}" >/dev/null 2>/dev/null
         fi
 	
 
@@ -115,7 +130,7 @@ function video {
 
 ##############################
 # Zpracovani prepinacu
-while getopts vho:d:t:s:T:Cy:Y: opt
+while getopts vho:d:t:s:T:Cy:Y:n: opt
 do
 	case $opt in
 		v) ((VERBOSE++));;
@@ -128,6 +143,7 @@ do
                 C) CHECK=1;;
                 y) YMIN=$OPTARG;;
                 Y) YMAX=$OPTARG;;
+                n) NAME=$OPTARG;;
 		\?) err "$USAGE";
 	esac
 done
