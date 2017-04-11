@@ -6,8 +6,8 @@ use DateTime::Format::Strptime;
 
 # (1) quit unless we have the correct number of command-line args
 $num_args = $#ARGV + 1;
-if ($num_args != 2) {
-    print "\nUsage: name.pl stringdatefmt date\n";
+if ($num_args != 1) {
+    print "\nUsage: name.pl stringdatefmt\n";
     exit;
 }
 
@@ -20,7 +20,7 @@ my $trp = DateTime::Format::Strptime->new(
     time_zone => 'Europe/Prague',
 );
 
-
-my $dt = $trp->parse_datetime($ARGV[1]);
-
+while(<STDIN>){
+my $dt = $trp->parse_datetime($_);
 print $dt->epoch;
+}
