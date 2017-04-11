@@ -195,12 +195,8 @@ done <${TMP}/sorted
 verbose "Files merged in  ${TMP}/merge $#"
 k=0
 if [ "$CHECK" = 1 ]; then
-   while read line; do
-      k=$(( $k + 1 ))
-      verbose "Checking line $k of ${TMP}/merge"
-      FIRSTDATE="$(echo $line | sed 's/ [^\ ]*$//')"
-      epoch=$(./dates.pl "$TIMEFORMAT" "$FIRSTDATE") || err "Date on $k line of ${tmp}/merge is not in correct format"
-   done <${TMP}/merge;
+      awk '{$NF=""; print $0}' ${TMP}/merge | ./datestd.pl "$TIMEFORMAT" >/dev/null 2>/dev/null || err "Date in ${TMP}/merge is not in correct format"
+verbose "All dates checked"
 fi
 
 #check all parametres if they collide or anything
