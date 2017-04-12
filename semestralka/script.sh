@@ -82,6 +82,11 @@ function process_arg {
         epoch=$(./dates.pl "$TIMEFORMAT" "$FIRSTDATE") || err "Date on first line of $arg is not in correct format"
         echo "$epoch" "$1">>${TMP}/unsorted
 }
+function load_config {
+
+echo "loading config from $1"
+
+}
 
 function video {
 	DATA=$1
@@ -136,7 +141,7 @@ function video {
 				plot '-' using 1:3 with lines t '', "${TMP}/dots" using 1:3 w p t '' 
 				PLOT
 			head -n $i "$DATA"
-		} | gnuplot
+		} | gnuplot || err "Something went wrong with gnuplot"
 		((p=100*i/LINES,p%10==0?first:(first=1,0))) && { vverbose "Done: $p%"; first=0; }
 	        float=$(echo "$float+$SPEED" | bc)
                 i=$(echo "$float/1" | bc)
@@ -146,36 +151,48 @@ function video {
 	#vytvorit slozku pro vystup
         mkdir $NAME 2>/dev/null || NAME=$(max_folder $NAME)
      # Spojit snimky do videa   
-	if [[ -z "$DURATION" ]]; then
+	if [[ -z "$TIME" ]]; then
         ffmpeg -y -i "$FMT" -- "${PWD}/${NAME}/${OUTPUT}" >/dev/null 2>/dev/null
         else
-        FPS=$(echo "($LINES)/($DURATION*$SPEED)" | bc -l)
-        verbose "Calculated FPS based on speed and duration is $FPS"
-        ffmpeg -framerate $FPS -y -i "$FMT" -- "${PWD}/${NAME}/${OUTPUT}" >/dev/null 2>/dev/null
+        FPS=$(echo "($LINES)/($TIME*$SPEED)" | bc -l)
+        verbose "Calculated FPS based on speed and time is $FPS"
+        ffmpeg -framerate $FPS -y -i "$FMT" -- "${PWD}/${NAME}/${OUTPUT}" >/dev/null 2>/dev/null || err "Something went wrong with ffmpeg"
         fi
-	
+	verbose "Animation is ready ${PWD}/${NAME}/${OUTPUT}"
 
 }
-
+#check prequisites
 preq
 
 ##############################
 # Zpracovani prepinacu
-while getopts vho:d:t:s:T:y:Y:n: opt
+OPTSTRING='vho:d:t:s:T:y:Y:n:f:'
+#looking for config first
+while getopts "$OPTSTRING" opt
 do
 	case $opt in
-		v) ((VERBOSE++));;
-		h) printf "%s\n" "$USAGE"; ECODE=0; exit ;;
-		o) OUTPUT=$OPTARG;;
-                d) DOTS=$OPTARG;;
-                t) TIMEFORMAT=$OPTARG;;
-                s) SPEED=$OPTARG;;
-                T) DURATION=$OPTARG;;
-                y) YMIN=$OPTARG;;
-                Y) YMAX=$OPTARG;;
-                n) NAME=$OPTARG;;
-		\?) err "$USAGE";
+	    f) CONFIG=$OPTARG 
+           load_config $CONFIG;;
+        \?) :;
 	esac
+done
+OPTIND=1
+#now load other options
+while getopts "$OPTSTRING" opt
+do
+    case $opt in
+        v) ((VERBOSE++));;
+        h) printf "%s\n" "$USAGE"; ECODE=0; exit ;;
+        o) OUTPUT=$OPTARG;;
+        d) DOTS=$OPTARG;;
+        t) TIMEFORMAT=$OPTARG;;
+        s) SPEED=$OPTARG;;
+        T) TIME=$OPTARG;;
+        y) YMIN=$OPTARG;;
+        Y) YMAX=$OPTARG;;
+        n) NAME=$OPTARG;;
+        \?) err "$USAGE";
+    esac
 done
 shift $((OPTIND-1))
 
@@ -227,4 +244,5 @@ k=0
 #check all parametres if they collide or anything
 
 video "${TMP}/merge"
+verbose "Job is done!"
 ECODE=0
