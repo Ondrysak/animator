@@ -166,7 +166,7 @@ preq
 
 ##############################
 # Zpracovani prepinacu
-OPTSTRING='vho:d:t:s:T:y:Y:n:f:'
+OPTSTRING='vho:d:t:S:T:y:Y:n:f:'
 #looking for config first
 while getopts "$OPTSTRING" opt
 do
@@ -186,7 +186,7 @@ do
         o) OUTPUT=$OPTARG;;
         d) DOTS=$OPTARG;;
         t) TIMEFORMAT=$OPTARG;;
-        s) SPEED=$OPTARG;;
+        S) SPEED=$OPTARG;;
         T) TIME=$OPTARG;;
         y) YMIN=$OPTARG;;
         Y) YMAX=$OPTARG;;
