@@ -2,16 +2,12 @@
 
 use DateTime::Format::Strptime;
 
-
-
 # (1) quit unless we have the correct number of command-line args
 $num_args = $#ARGV + 1;
 if ($num_args != 1) {
     print "\nUsage: name.pl stringdatefmt\n";
     exit;
 }
-
-
 
 
 my $trp = DateTime::Format::Strptime->new(

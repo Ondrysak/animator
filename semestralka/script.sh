@@ -37,6 +37,15 @@ function test_arg {
 	#test if last field (value) is in correct format
 	awk -F " " '{print $NF}' "$1" | egrep -v '^-?([0-9]+|[0-9]*\.[0-9]+)$' && err "Bad data format in '$1'"
         #egrep -v '^[0-9]+ -?([0-9]+|[0-9]*\.[0-9]+)$' "$1" && err "Bad data format in '$1'"
+    awk '{$NF=""; print $0}' "$1" | ./datestd.pl "$TIMEFORMAT" >/dev/null 2>/dev/null || err "Date in $1 is not in correct format"
+    verbose "Argument $1 checked!"
+
+}
+
+function preq {
+type ffmpeg >/dev/null || err "It seems like ffmpeg is not installed"
+type gnuplot >/dev/null || err "It seems like gnuplot is not installed"
+perldoc -l DateTime::Format::Strptime >/dev/null || err "Seems like perl module DateTime::Format:Strptime is not installed"
 
 }
 
@@ -51,7 +60,28 @@ function max_folder {
   mkdir "${1}_${max}" ||  err "Could not create folder ${1}_${max}"
   echo "${1}_${max}"
 }
+function process_arg {
 
+    verbose "Processing: $1"
+        test_arg "$1"
+        #maybe could a problem to do this when using absolute path
+    FIRSTDATE="$(head -n1 $1 | sed 's/ [^\ ]*$//')"
+        #check return code
+        #echo $(./dates.pl "$TIMEFORMAT" "$FIRSTDATE") "${arg}">>${TMP}/unsorted
+        epoch=$(./dates.pl "$TIMEFORMAT" "$FIRSTDATE") || err "Date on first line of $arg is not in correct format"
+        echo "$epoch" "$1">>${TMP}/unsorted
+}
+function process_arg {
+
+    verbose "Processing: $1"
+        test_arg "$1"
+        #maybe could a problem to do this when using absolute path
+    FIRSTDATE="$(head -n1 $1 | sed 's/ [^\ ]*$//')"
+        #check return code
+        #echo $(./dates.pl "$TIMEFORMAT" "$FIRSTDATE") "${arg}">>${TMP}/unsorted
+        epoch=$(./dates.pl "$TIMEFORMAT" "$FIRSTDATE") || err "Date on first line of $arg is not in correct format"
+        echo "$epoch" "$1">>${TMP}/unsorted
+}
 
 function video {
 	DATA=$1
@@ -113,9 +143,9 @@ function video {
                 k=$(($k+1))
         done
         verbose "GNUPLOT done, ffmpeg comes into play"
-	# Spojit snimky do videa
+	#vytvorit slozku pro vystup
         mkdir $NAME 2>/dev/null || NAME=$(max_folder $NAME)
-        
+     # Spojit snimky do videa   
 	if [[ -z "$DURATION" ]]; then
         ffmpeg -y -i "$FMT" -- "${PWD}/${NAME}/${OUTPUT}" >/dev/null 2>/dev/null
         else
@@ -127,10 +157,11 @@ function video {
 
 }
 
+preq
 
 ##############################
 # Zpracovani prepinacu
-while getopts vho:d:t:s:T:Cy:Y:n: opt
+while getopts vho:d:t:s:T:y:Y:n: opt
 do
 	case $opt in
 		v) ((VERBOSE++));;
@@ -140,7 +171,6 @@ do
                 t) TIMEFORMAT=$OPTARG;;
                 s) SPEED=$OPTARG;;
                 T) DURATION=$OPTARG;;
-                C) CHECK=1;;
                 y) YMIN=$OPTARG;;
                 Y) YMAX=$OPTARG;;
                 n) NAME=$OPTARG;;
@@ -170,16 +200,15 @@ esac
 
 for arg
 do
-	verbose "Processing: $arg"
-        test_arg "$arg"
-        #maybe could a problem to do this when using absolute path
-	FIRSTDATE="$(head -n1 $arg | sed 's/ [^\ ]*$//')"
-        #check return code
-        #echo $(./dates.pl "$TIMEFORMAT" "$FIRSTDATE") "${arg}">>${TMP}/unsorted
-        epoch=$(./dates.pl "$TIMEFORMAT" "$FIRSTDATE") || err "Date on first line of $arg is not in correct format"
-        echo "$epoch" "$arg">>${TMP}/unsorted
-        
-        #cat "$arg">>"${TMP}/merge"
+
+if [[ "$arg" =~ ^http ]]; then
+verbose "Downloading $arg"
+wget --quiet -O - "$arg" > "${TMP}/download" || err "Download of $arg failed"
+process_arg "${TMP}/download";
+else
+process_arg "$arg";
+fi
+
 done
 
 cat ${TMP}/unsorted | sort -n >${TMP}/sorted
@@ -194,10 +223,6 @@ done <${TMP}/sorted
 
 verbose "Files merged in  ${TMP}/merge $#"
 k=0
-if [ "$CHECK" = 1 ]; then
-      awk '{$NF=""; print $0}' ${TMP}/merge | ./datestd.pl "$TIMEFORMAT" >/dev/null 2>/dev/null || err "Date in ${TMP}/merge is not in correct format"
-verbose "All dates checked"
-fi
 
 #check all parametres if they collide or anything
 

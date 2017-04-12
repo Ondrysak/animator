@@ -1,1 +1,0 @@
-cpan DateTime::Format::Strptime
