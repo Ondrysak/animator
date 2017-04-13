@@ -71,21 +71,19 @@ function process_arg {
         epoch=$(./dates.pl "$TIMEFORMAT" "$FIRSTDATE") || err "Date on first line of $arg is not in correct format"
         echo "$epoch" "$1">>${TMP}/unsorted
 }
-function process_arg {
 
-    verbose "Processing: $1"
-        test_arg "$1"
-        #maybe could a problem to do this when using absolute path
-    FIRSTDATE="$(head -n1 $1 | sed 's/ [^\ ]*$//')"
-        #check return code
-        #echo $(./dates.pl "$TIMEFORMAT" "$FIRSTDATE") "${arg}">>${TMP}/unsorted
-        epoch=$(./dates.pl "$TIMEFORMAT" "$FIRSTDATE") || err "Date on first line of $arg is not in correct format"
-        echo "$epoch" "$1">>${TMP}/unsorted
-}
 function load_config {
 
-echo "loading config from $1"
+verbose "loading config from $1"
+    [ -n "$1" ] || err "Empty config argument"
+    [ -f "$1" ] || err "Config '$1' is not a file"
+    [ -r "$1" ] || err "Config file '$1' is not readable"
+    [ -s "$1" ] || err "Config file '$1' is empty"
 
+
+grep -v '^#' $1 | grep -v '^\s*$' | sed -E 's/[[:space:]]+/ /' | sed 's/#.*$//' | awk '{print toupper($1)"="$2}'>"${TMP}/config"
+source "${TMP}/config"
+verbose "config from $1 loaded"
 }
 
 function video {
@@ -168,11 +166,15 @@ preq
 # Zpracovani prepinacu
 OPTSTRING='vho:d:t:S:T:y:Y:n:f:'
 #looking for config first
+TMP=$(mktemp -d) || { echo "Cannot create temporary directory" >&2; exit 1; }
+trap 'rm -rf "$TMP"; exit $ECODE' EXIT
+
+
 while getopts "$OPTSTRING" opt
 do
 	case $opt in
-	    f) CONFIG=$OPTARG 
-           load_config $CONFIG;;
+	    f) CONFIG="$OPTARG" 
+           load_config "$CONFIG";;
         \?) :;
 	esac
 done
@@ -183,25 +185,23 @@ do
     case $opt in
         v) ((VERBOSE++));;
         h) printf "%s\n" "$USAGE"; ECODE=0; exit ;;
-        o) OUTPUT=$OPTARG;;
-        d) DOTS=$OPTARG;;
-        t) TIMEFORMAT=$OPTARG;;
-        S) SPEED=$OPTARG;;
-        T) TIME=$OPTARG;;
-        y) YMIN=$OPTARG;;
-        Y) YMAX=$OPTARG;;
-        n) NAME=$OPTARG;;
+        o) OUTPUT="$OPTARG";;
+        d) DOTS="$OPTARG";;
+        t) TIMEFORMAT="$OPTARG";;
+        S) SPEED="$OPTARG";;
+        T) TIME="$OPTARG";;
+        y) YMIN="$OPTARG";;
+        Y) YMAX="$OPTARG";;
+        n) NAME="$OPTARG";;
         \?) err "$USAGE";
     esac
 done
 shift $((OPTIND-1))
 
 # Adresar pro docasne soubory
-TMP=$(mktemp -d) || { echo "Cannot create temporary directory" >&2; exit 1; }
-trap 'rm -rf "$TMP"; exit $ECODE' EXIT
+
+
 verbose "Temp dir: $TMP"
-
-
 
 EXT=${OUTPUT##*.}
 case $EXT in
