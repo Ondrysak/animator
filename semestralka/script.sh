@@ -15,6 +15,7 @@ ECODE=1
 VERBOSE=0
 OUTPUT=anim.mp4
 DOTS=10
+TYPE=1
 SPEED=1
 #change time default format to [%Y-%m-%d %H:%M:%S]
 TIMEFORMAT='[%Y/%m/%d %H:%M:%S]'
@@ -45,6 +46,7 @@ function test_arg {
 function preq {
 type ffmpeg >/dev/null || err "It seems like ffmpeg is not installed"
 type gnuplot >/dev/null || err "It seems like gnuplot is not installed"
+type perldoc >/dev/null || err "It seems like perldoc is not installed"
 perldoc -l DateTime::Format::Strptime >/dev/null || err "Seems like perl module DateTime::Format:Strptime is not installed"
 
 }
@@ -86,6 +88,23 @@ source "${TMP}/config"
 verbose "config from $1 loaded"
 }
 
+function parse_eparams {
+
+TMPDOTS=$( echo $1 | sed 's/:/\n/g' | grep -E -m 1 '^modulo=[0-9]+$' | cut -d'=' -f2 ) 
+TMPTYPE=$( echo $1 | sed 's/:/\n/g' | grep -E -m 1 '^type=[0-9]{1,3}$' | cut -d'=' -f2 )
+if [[ -z "$TMPDOTS" ]]; then
+:
+else
+DOTS="$TMPDOTS"
+fi    
+
+if [[ -z "$TMPTYPE" ]]; then
+:
+else
+TYPE="$TMPTYPE"
+fi
+}
+
 function video {
 	DATA=$1
         verbose "Using modulo $DOTS for points"
@@ -121,7 +140,8 @@ function video {
     FMT=$TMP/%0${#LINES}d.png
 	verbose "tmp file FMT set to $FMT"
         verbose "timeformat set to $TIMEFORMAT"
-        verbose "speed set to $SPEED"	
+        verbose "speed set to $SPEED"
+        verbose "point type is $TYPE"	
         # Vygenerovat snimky animace
         local i
         local k
@@ -143,7 +163,7 @@ function video {
                                 set rmargin 15
                                 set grid
                                 set output "$(printf "$FMT" $k)"
-				plot '-' using 1:3 with lines t '', "${TMP}/dots" using 1:3 w p t '' 
+				plot '-' using 1:3 with lines t '', "${TMP}/dots" using 1:3 w p pt ${TYPE} t '' 
 				PLOT
 			head -n $i "$DATA"
 		} | gnuplot || err "Something went wrong with gnuplot"
@@ -171,7 +191,7 @@ preq
 
 ##############################
 # Zpracovani prepinacu
-OPTSTRING='vho:d:t:S:T:y:Y:n:f:'
+OPTSTRING='vho:e:t:S:T:y:Y:n:f:'
 #looking for config first
 TMP=$(mktemp -d) || { echo "Cannot create temporary directory" >&2; exit 1; }
 trap 'rm -rf "$TMP"; exit $ECODE' EXIT
@@ -193,7 +213,7 @@ do
         v) ((VERBOSE++));;
         h) printf "%s\n" "$USAGE"; ECODE=0; exit ;;
         o) OUTPUT="$OPTARG";;
-        d) DOTS="$OPTARG";;
+        e) EFFECTPARAMS="$OPTARG"; parse_eparams "$EFFECTPARAMS";;
         t) TIMEFORMAT="$OPTARG";;
         S) SPEED="$OPTARG";;
         T) TIME="$OPTARG";;
