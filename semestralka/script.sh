@@ -38,7 +38,14 @@ function test_arg {
 	#test if last field (value) is in correct format
 	awk -F " " '{print $NF}' "$1" | egrep -v '^-?([0-9]+|[0-9]*\.[0-9]+)$' && err "Bad data format in '$1'"
         #egrep -v '^[0-9]+ -?([0-9]+|[0-9]*\.[0-9]+)$' "$1" && err "Bad data format in '$1'"
-    awk '{$NF=""; print $0}' "$1" | ./datestd.pl "$TIMEFORMAT" >/dev/null 2>/dev/null || err "Date in $1 is not in correct format"
+    #check dates using a perl script and output them in epoch format for a further inspection
+    awk '{$NF=""; print $0}' "$1" | ./datestd.pl "$TIMEFORMAT" >"${TMP}/epoch" 2>/dev/null || err "Date in $1 is not in correct format"
+local epoch;
+epoch=0;
+while read line; do
+  [[ "$epoch" -le "$line" ]] || err "Xticks in $1 are not continuous"
+  epoch="$line"
+done <${TMP}/epoch
     verbose "Argument $1 checked!"
 
 }

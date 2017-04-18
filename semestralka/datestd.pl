@@ -18,5 +18,5 @@ my $trp = DateTime::Format::Strptime->new(
 
 while(<STDIN>){
 my $dt = $trp->parse_datetime($_);
-print $dt->epoch;
+print $dt->epoch . "\n";
 }
