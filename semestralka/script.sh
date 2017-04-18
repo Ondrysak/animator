@@ -114,7 +114,11 @@ function video {
 
 	YRANGE=$( echo "${TMPYMIN}:${TMPYMAX}")
 	verbose "$1 has $YRANGE range"
-	FMT=$TMP/%0${#LINES}d.png
+	
+    TMPXMIN=$(  head -n1 ${DATA} | sed -E 's/ [^ ]+$//' )
+    TMPXMAX=$(  tail -n1 ${DATA} | sed -E 's/ [^ ]+$//' )
+    XRANGE=$( echo "\"${TMPXMIN}\":\"${TMPXMAX}\"")
+    FMT=$TMP/%0${#LINES}d.png
 	verbose "tmp file FMT set to $FMT"
         verbose "timeformat set to $TIMEFORMAT"
         verbose "speed set to $SPEED"	
@@ -133,7 +137,10 @@ function video {
                                 set timefmt "$TIMEFORMAT"
 				set xdata time
                                 set yrange [$YRANGE]
-                                set format x"%H:%M"
+                                set xrange [$XRANGE]
+                                set format x"$TIMEFORMAT"
+                                set xtics rotate by -45
+                                set rmargin 15
                                 set grid
                                 set output "$(printf "$FMT" $k)"
 				plot '-' using 1:3 with lines t '', "${TMP}/dots" using 1:3 w p t '' 
