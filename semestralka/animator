@@ -1,9 +1,13 @@
 #!/bin/bash
 # Skript generuje animaci grafu ze zadanych dat
 
+
+#I tested with this option on, maybe not needed, included to be sure
 shopt -s extglob
+#numeric sorting nondependent on locale
 export LC_ALL=C
 
+#usage
 USAGE=()
 USAGE+=("Usage:  $0 [-v] [-e modulo=int:type=1-200] [-S float/int] [-t strftime] [-T int/float] [-n string] [-o string] [-y int/float/auto/min/max] [-Y int/float/auto/min/max] [-f path to config] data...")
 USAGE+=("        $0 [-h]")
@@ -20,24 +24,31 @@ USAGE+=("           -Y  ymax")
 USAGE+=("           -f  path to valid config file for directives see manual")
 USAGE+=("           -h  this help")
 
+#returncode is 1 until we reach the end
 ECODE=1
+#verbosity level
 VERBOSE=0
+#output suffix
 OUTPUT=anim.mp4
+#effect modulo
 DOTS=10
+#dot type 1-200
 TYPE=1
+#input reading speed, may be float
 SPEED=1
-#change time default format to [%Y-%m-%d %H:%M:%S]
+#timeformat
 TIMEFORMAT='[%Y/%m/%d %H:%M:%S]'
+#duration
 TIME=''
 YMIN=auto
 YMAX=auto
+#name of output directory
 NAME=dots
-# Funkce
+# Functions described well in prog. documentation
 
 function verbose { ((VERBOSE)) && printf "$0[debug]: %s\n" "$@" >&2; }
 function vverbose { ((VERBOSE>1)) && printf "$0[debug]: %s\n" "$@" >&2; }
 function err { printf "$0[error]: %s\n" "$@" >&2; exit; }
-
 function test_arg {
 	[ -n "$1" ] || err "Empty argument"
 	[ -f "$1" ] || err "Argument '$1' is not a file"
@@ -45,9 +56,9 @@ function test_arg {
 	[ -s "$1" ] || err "Data file '$1' is empty"
 	#test if last field (value) is in correct format
 	awk -F " " '{print $NF}' "$1" | egrep -v '^-?([0-9]+|[0-9]*\.[0-9]+)$' && err "Bad data format in '$1'"
-        #egrep -v '^[0-9]+ -?([0-9]+|[0-9]*\.[0-9]+)$' "$1" && err "Bad data format in '$1'"
     #check dates using a perl script and output them in epoch format for a further inspection
     awk '{$NF=""; print $0}' "$1" | $(dirname $0)/datestd.pl "$TIMEFORMAT" >"${TMP}/epoch" 2>/dev/null || err "Date in $1 is not in correct format"
+#inspect if the order is right
 local epoch;
 epoch=0;
 while read line; do
@@ -60,22 +71,26 @@ done <${TMP}/epoch
 
 function validate_params {
 
+
+#check parametres using some superior regular expressions 
+
 [[ "$DOTS" =~ ^[0-9]+$ ]] || err "modulo supplied via -e is not an integer"
 [[ "$TYPE" =~ ^[0-9]+$ ]] || err "type supplied via -e is not an integer"
 [[ "$TYPE" -ge 1 ]] || err "type supplied via -e is smaller than 1"
 [[ "$TYPE" -le 200 ]] || err "type supplied via -e is bigger than 200"
-[[ "$SPEED" =~ ^[0-9]\.*[0-9]*$ ]] || err "speed must be either integer or a float number"
+[[ "$SPEED" =~ ^[0-9]+\.*[0-9]*$ ]] || err "speed must be either integer or a float number"
 [[ "$SPEED" =~ ^0$ ]] && err "speed cannot be 0"
 
 # how to validate timeformat TIMEFORMAT='[%Y/%m/%d %H:%M:%S]'
-[[ "$TIME" =~ ((^[0-9]\.*[0-9]*$)|(^$)) ]] || err "time must be either integer or a float number"
-[[ "$YMIN" =~ ((^auto$)|(^min$)|(^max$)|(^-*[0-9]\.*[0-9]*$)) ]] || err "ymin must be either integer, float number, min, max or auto"
-[[ "$YMAX" =~ ((^auto$)|(^min$)|(^max$)|(^-*[0-9]\.*[0-9]*$)) ]] || err "ymax must be either integer, float number,min, max or auto"
+[[ "$TIME" =~ ((^[0-9]+\.*[0-9]*$)|(^$)) ]] || err "time must be either integer or a float number"
+[[ "$YMIN" =~ ((^auto$)|(^min$)|(^max$)|(^-*[0-9]+\.*[0-9]*$)) ]] || err "ymin must be either integer, float number, min, max or auto"
+[[ "$YMAX" =~ ((^auto$)|(^min$)|(^max$)|(^-*[0-9]+\.*[0-9]*$)) ]] || err "ymax must be either integer, float number,min, max or auto"
 
 
 }
 
 function preq {
+#check prequisites
 type ffmpeg >/dev/null || err "It seems like ffmpeg is not installed"
 type gnuplot >/dev/null || err "It seems like gnuplot is not installed"
 type perldoc >/dev/null || err "It seems like perldoc is not installed"
@@ -112,7 +127,7 @@ verbose "loading config from $1"
     [ -f "$1" ] || err "Config '$1' is not a file"
     [ -r "$1" ] || err "Config file '$1' is not readable"
     [ -s "$1" ] || err "Config file '$1' is empty"
-
+#check if only valid directives are used
 directives_regex='((^TIMEFORMAT=)|(^YMAX=)|(^YMIN=)|(^SPEED=)|(^TIME=)|(^EFFECTPARAMS=)|(^NAME=))'
 grep -v '^#' $1 | grep -v '^\s*$' | sed -E 's/[[:space:]]+/ /' | sed 's/#.*$//' | awk '{print toupper($1)"="$2}'>"${TMP}/config"
 grep -v -E "$directives_regex" "${TMP}/config" && err "invalid directives used in config"
@@ -121,7 +136,7 @@ verbose "config from $1 loaded"
 }
 
 function parse_eparams {
-
+#parse eparams separated by :
 TMPDOTS=$( echo $1 | sed 's/:/\n/g' | grep -E -m 1 '^modulo=[0-9]+$' | cut -d'=' -f2 ) 
 TMPTYPE=$( echo $1 | sed 's/:/\n/g' | grep -E -m 1 '^type=[0-9]{1,3}$' | cut -d'=' -f2 )
 if [[ -z "$TMPDOTS" ]]; then
@@ -138,6 +153,7 @@ fi
 }
 
 function video {
+
 	DATA=$1
         verbose "Using modulo $DOTS for points"
 	#create file with dots using awk and row numbers
@@ -145,6 +161,7 @@ function video {
 
 	# Limity podle datoveho souboru
 	LINES=$(wc -l <"$DATA")
+	[[ "$LINES" -le "$DOTS" ]] && err "modulo must be smaller than line count of merged files"
 	verbose "$1 has $LINES lines"
         #ymin ymax dle parametru
         if [ "$YMIN" = auto ]; then
