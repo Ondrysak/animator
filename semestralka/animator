@@ -5,10 +5,19 @@ shopt -s extglob
 export LC_ALL=C
 
 USAGE=()
-USAGE+=("Usage:  $0 [-v] [-o ext] data...")
+USAGE+=("Usage:  $0 [-v] [-e modulo=int:type=1-200] [-S float/int] [-t strftime] [-T int/float] [-n string] [-o string] [-y int/float/auto/min/max] [-Y int/float/auto/min/max] [-f path to config] data...")
 USAGE+=("        $0 [-h]")
-USAGE+=("           -o output_extension")
+USAGE+=("           ")
 USAGE+=("           -v  verbose")
+USAGE+=("           -e  parametres of dots effect")
+USAGE+=("           -S  speed of loading data")
+USAGE+=("           -t  format of time in files")
+USAGE+=("           -T  duration of the resulting animation")
+USAGE+=("           -n  folder in which animation will be created")
+USAGE+=("           -o  output name")
+USAGE+=("           -y  ymin")
+USAGE+=("           -Y  ymax")
+USAGE+=("           -f  path to valid config file for directives see manual")
 USAGE+=("           -h  this help")
 
 ECODE=1
@@ -19,8 +28,7 @@ TYPE=1
 SPEED=1
 #change time default format to [%Y-%m-%d %H:%M:%S]
 TIMEFORMAT='[%Y/%m/%d %H:%M:%S]'
-DURATION=''
-CHECK=0
+TIME=''
 YMIN=auto
 YMAX=auto
 NAME=dots
@@ -39,7 +47,7 @@ function test_arg {
 	awk -F " " '{print $NF}' "$1" | egrep -v '^-?([0-9]+|[0-9]*\.[0-9]+)$' && err "Bad data format in '$1'"
         #egrep -v '^[0-9]+ -?([0-9]+|[0-9]*\.[0-9]+)$' "$1" && err "Bad data format in '$1'"
     #check dates using a perl script and output them in epoch format for a further inspection
-    awk '{$NF=""; print $0}' "$1" | ./datestd.pl "$TIMEFORMAT" >"${TMP}/epoch" 2>/dev/null || err "Date in $1 is not in correct format"
+    awk '{$NF=""; print $0}' "$1" | $(dirname $0)/datestd.pl "$TIMEFORMAT" >"${TMP}/epoch" 2>/dev/null || err "Date in $1 is not in correct format"
 local epoch;
 epoch=0;
 while read line; do
@@ -47,6 +55,23 @@ while read line; do
   epoch="$line"
 done <${TMP}/epoch
     verbose "Argument $1 checked!"
+
+}
+
+function validate_params {
+
+[[ "$DOTS" =~ ^[0-9]+$ ]] || err "modulo supplied via -e is not an integer"
+[[ "$TYPE" =~ ^[0-9]+$ ]] || err "type supplied via -e is not an integer"
+[[ "$TYPE" -ge 1 ]] || err "type supplied via -e is smaller than 1"
+[[ "$TYPE" -le 200 ]] || err "type supplied via -e is bigger than 200"
+[[ "$SPEED" =~ ^[0-9]\.*[0-9]*$ ]] || err "speed must be either integer or a float number"
+[[ "$SPEED" =~ ^0$ ]] && err "speed cannot be 0"
+
+# how to validate timeformat TIMEFORMAT='[%Y/%m/%d %H:%M:%S]'
+[[ "$TIME" =~ ((^[0-9]\.*[0-9]*$)|(^$)) ]] || err "time must be either integer or a float number"
+[[ "$YMIN" =~ ((^auto$)|(^min$)|(^max$)|(^[0-9]\.*[0-9]*$)) ]] || err "ymin must be either integer, float number, min, max or auto"
+[[ "$YMAX" =~ ((^auto$)|(^min$)|(^max$)|(^[0-9]\.*[0-9]*$)) ]] || err "ymax must be either integer, float number,min, max or auto"
+
 
 }
 
@@ -76,8 +101,7 @@ function process_arg {
         #maybe could a problem to do this when using absolute path
     FIRSTDATE="$(head -n1 $1 | sed 's/ [^\ ]*$//')"
         #check return code
-        #echo $(./dates.pl "$TIMEFORMAT" "$FIRSTDATE") "${arg}">>${TMP}/unsorted
-        epoch=$(./dates.pl "$TIMEFORMAT" "$FIRSTDATE") || err "Date on first line of $arg is not in correct format"
+        epoch=$($(dirname $0)/dates.pl "$TIMEFORMAT" "$FIRSTDATE") || err "Date on first line of $arg is not in correct format"
         echo "$epoch" "$1">>${TMP}/unsorted
 }
 
@@ -233,7 +257,7 @@ done
 shift $((OPTIND-1))
 
 # Adresar pro docasne soubory
-
+validate_params
 
 verbose "Temp dir: $TMP"
 
