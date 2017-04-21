@@ -69,8 +69,8 @@ function validate_params {
 
 # how to validate timeformat TIMEFORMAT='[%Y/%m/%d %H:%M:%S]'
 [[ "$TIME" =~ ((^[0-9]\.*[0-9]*$)|(^$)) ]] || err "time must be either integer or a float number"
-[[ "$YMIN" =~ ((^auto$)|(^min$)|(^max$)|(^[0-9]\.*[0-9]*$)) ]] || err "ymin must be either integer, float number, min, max or auto"
-[[ "$YMAX" =~ ((^auto$)|(^min$)|(^max$)|(^[0-9]\.*[0-9]*$)) ]] || err "ymax must be either integer, float number,min, max or auto"
+[[ "$YMIN" =~ ((^auto$)|(^min$)|(^max$)|(^-*[0-9]\.*[0-9]*$)) ]] || err "ymin must be either integer, float number, min, max or auto"
+[[ "$YMAX" =~ ((^auto$)|(^min$)|(^max$)|(^-*[0-9]\.*[0-9]*$)) ]] || err "ymax must be either integer, float number,min, max or auto"
 
 
 }
@@ -113,8 +113,9 @@ verbose "loading config from $1"
     [ -r "$1" ] || err "Config file '$1' is not readable"
     [ -s "$1" ] || err "Config file '$1' is empty"
 
-
+directives_regex='((^TIMEFORMAT=)|(^YMAX=)|(^YMIN=)|(^SPEED=)|(^TIME=)|(^EFFECTPARAMS=)|(^NAME=))'
 grep -v '^#' $1 | grep -v '^\s*$' | sed -E 's/[[:space:]]+/ /' | sed 's/#.*$//' | awk '{print toupper($1)"="$2}'>"${TMP}/config"
+grep -v -E "$directives_regex" "${TMP}/config" && err "invalid directives used in config"
 source "${TMP}/config"
 verbose "config from $1 loaded"
 }
@@ -236,6 +237,7 @@ do
         \?) :;
 	esac
 done
+parse_eparams "$EFFECTPARAMS"
 OPTIND=1
 #now load other options
 while getopts "$OPTSTRING" opt
