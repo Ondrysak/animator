@@ -235,14 +235,16 @@ function video {
 	verbose "Animation is ready ${PWD}/${NAME}/${OUTPUT}"
 
 }
-#check prequisites
-preq
+
 
 ##############################
-# Zpracovani prepinacu
+
+#check prequisites
+preq
+# params
 OPTSTRING='vho:e:t:S:T:y:Y:n:f:'
 
-# creating a temp dire
+# creating a temp dir
 TMP=$(mktemp -d) || { echo "Cannot create temporary directory" >&2; exit 1; }
 trap 'rm -rf "$TMP"; exit $ECODE' EXIT
 
@@ -257,7 +259,7 @@ do
 done
 parse_eparams "$EFFECTPARAMS"
 OPTIND=1
-#now load other options
+#now load other options overwriting the ones loaded from config
 while getopts "$OPTSTRING" opt
 do
     case $opt in
@@ -276,7 +278,7 @@ do
 done
 shift $((OPTIND-1))
 
-#
+#validate loaded parametres
 validate_params
 
 verbose "Temp dir: $TMP"
@@ -285,11 +287,11 @@ EXT=${OUTPUT#*.}
 [[ "$EXT" =~ ^mp4$ ]] || err 'output suffix must be mp4'
 verbose "output name is $OUTPUT"
 
-# Osetreni parametru
+#at least one argument must be supplied
 [ $# -ge 1 ] || err "Arguments missing" "${USAGE[@]}"
 
 
-
+#loop all arguments
 for arg
 do
 
@@ -302,21 +304,19 @@ process_arg "$arg";
 fi
 
 done
-
+#sort the files based on the first line
 cat ${TMP}/unsorted | sort -n >${TMP}/sorted
 
 
 verbose "Merging input files"
-
+#merge the files based on file sorted, as order of lines is checked files cannot overlap
 while read line; do
   filename=$(echo $line | awk '{print $NF}')
   cat "$filename">>"${TMP}/merge"
 done <${TMP}/sorted
 
-verbose "Files merged in  ${TMP}/merge $#"
-k=0
+verbose "Files merged in  ${TMP}/merge ${#}"
 
-#check all parametres if they collide or anything
 
 video "${TMP}/merge"
 verbose "Job is done!"
