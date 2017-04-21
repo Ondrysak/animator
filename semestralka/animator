@@ -224,11 +224,12 @@ preq
 ##############################
 # Zpracovani prepinacu
 OPTSTRING='vho:e:t:S:T:y:Y:n:f:'
-#looking for config first
+
+# creating a temp dire
 TMP=$(mktemp -d) || { echo "Cannot create temporary directory" >&2; exit 1; }
 trap 'rm -rf "$TMP"; exit $ECODE' EXIT
 
-
+#looking for config first
 while getopts "$OPTSTRING" opt
 do
 	case $opt in
@@ -258,17 +259,14 @@ do
 done
 shift $((OPTIND-1))
 
-# Adresar pro docasne soubory
+#
 validate_params
 
 verbose "Temp dir: $TMP"
 
-EXT=${OUTPUT##*.}
-case $EXT in
-	mp4|avi|mpeg|mpg) : ;;
-	*) err "Unrecognisable outout format '$EXT'";;
-esac
-
+EXT=${OUTPUT#*.}
+[[ "$EXT" =~ ^mp4$ ]] || err 'output suffix must be mp4'
+verbose "output name is $OUTPUT"
 
 # Osetreni parametru
 [ $# -ge 1 ] || err "Arguments missing" "${USAGE[@]}"
