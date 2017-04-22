@@ -1,5 +1,5 @@
 #!/bin/bash
-type avprobe || echo "you need to install avprobe to show data about media files"
+type exiftool || echo "you should install exiftool show mediafiles metadata"
 
 echo "#################################################################"
 echo "Testing one valid input file with timeformat matching the default"
