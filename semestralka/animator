@@ -79,7 +79,7 @@ function validate_params {
 [[ "$TYPE" -ge 1 ]] || err "type supplied via -e is smaller than 1"
 [[ "$TYPE" -le 200 ]] || err "type supplied via -e is bigger than 200"
 [[ "$SPEED" =~ ^[0-9]+\.*[0-9]*$ ]] || err "speed must be either integer or a float number"
-[[ "$SPEED" =~ ^0$ ]] && err "speed cannot be 0"
+[[ "$SPEED" =~ ^0\.*0*$ ]] && err "speed cannot be 0"
 
 # how to validate timeformat TIMEFORMAT='[%Y/%m/%d %H:%M:%S]'
 [[ "$TIME" =~ ((^[0-9]+\.*[0-9]*$)|(^$)) ]] || err "time must be either integer or a float number"
