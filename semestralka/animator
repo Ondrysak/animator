@@ -59,12 +59,15 @@ function test_arg {
     #check dates using a perl script and output them in epoch format for a further inspection
     awk '{$NF=""; print $0}' "$1" | "$(dirname "$0")"/datestd.pl "$TIMEFORMAT" >"${TMP}/epoch" 2>/dev/null || err "Date in $1 is not in correct format"
 #inspect if the order is right
-local epoch;
-local k;
-epoch=0;
+local epoch
+local k
 k=1
+epoch=0
 while read line; do
-  [[ "$epoch" -le "$line" ]] || err "Xticks in $1 are not continuous line $k"
+  echo "${k}__${epoch}__${line}"
+  if [ "$k" -ne 1 ]; then
+  	[[ "$epoch" -le "$line" ]] || err "Xticks in $1 are not continuous line $k";
+  fi
   epoch="$line"
   k=$((k+1))
 done <"${TMP}/epoch"
