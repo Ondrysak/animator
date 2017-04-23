@@ -60,10 +60,13 @@ function test_arg {
     awk '{$NF=""; print $0}' "$1" | "$(dirname "$0")"/datestd.pl "$TIMEFORMAT" >"${TMP}/epoch" 2>/dev/null || err "Date in $1 is not in correct format"
 #inspect if the order is right
 local epoch;
+local k;
 epoch=0;
+k=1
 while read line; do
-  [[ "$epoch" -le "$line" ]] || err "Xticks in $1 are not continuous"
+  [[ "$epoch" -le "$line" ]] || err "Xticks in $1 are not continuous line $k"
   epoch="$line"
+  k=$((k+1))
 done <"${TMP}/epoch"
     verbose "Argument $1 checked!"
 
@@ -83,8 +86,8 @@ function validate_params {
 
 # how to validate timeformat TIMEFORMAT='[%Y/%m/%d %H:%M:%S]'
 [[ "$TIME" =~ ((^[0-9]+\.*[0-9]*$)|(^$)) ]] || err "time must be either integer or a float number"
-[[ "$YMIN" =~ ((^auto$)|(^min$)|(^max$)|(^-*[0-9]+\.*[0-9]*$)) ]] || err "ymin must be either integer, float number, min, max or auto"
-[[ "$YMAX" =~ ((^auto$)|(^min$)|(^max$)|(^-*[0-9]+\.*[0-9]*$)) ]] || err "ymax must be either integer, float number,min, max or auto"
+[[ "$YMIN" =~ ((^auto$)|(^min$)|(^-*[0-9]+\.*[0-9]*$)) ]] || err "ymin must be either integer, float number, min, max or auto"
+[[ "$YMAX" =~ ((^auto$)|(^max$)|(^-*[0-9]+\.*[0-9]*$)) ]] || err "ymax must be either integer, float number,min, max or auto"
 
 
 }
@@ -130,7 +133,7 @@ verbose "loading config from $1"
 #check if only valid directives are used
 directives_regex='((^TIMEFORMAT=)|(^YMAX=)|(^YMIN=)|(^SPEED=)|(^TIME=)|(^EFFECTPARAMS=)|(^NAME=))'
 grep -v '^#' "$1" | grep -v '^\s*$' | sed -E 's/[[:space:]]+/ /' | sed 's/#.*$//' | awk '{print toupper($1)"="$2}'>"${TMP}/config"
-grep -v -E "$directives_regex" "${TMP}/config" && err "invalid directives used in config"
+grep -v -E "$directives_regex" "${TMP}/config" && err " preceding unrecognized directives used in config"
 source "${TMP}/config"
 verbose "config from $1 loaded"
 }
@@ -203,6 +206,10 @@ function video {
         i=1
         k=1
         float=1
+    #count spaces, gnuplot uses them as separator
+    formatspaces=$(echo $TIMEFORMAT | tr -cd ' ' | wc -c)
+    #calculate gnuplot offset with respect to number of spaces in separator
+    sepoffset=$(( $formatspaces + 2 ))
 	while [ $i -le "$LINES" ]
 	do
 		{
@@ -217,7 +224,7 @@ function video {
                                 set rmargin 15
                                 set grid
                                 set output "$(printf "$FMT" $k)"
-				plot '-' using 1:3 with lines t '', "${TMP}/dots" using 1:3 w p pt ${TYPE} t '' 
+				plot '-' using 1:$sepoffset with lines t '', "${TMP}/dots" using 1:$sepoffset w p pt ${TYPE} t '' 
 				PLOT
 			head -n $i "$DATA"
 		} | gnuplot || err "Something went wrong with gnuplot"

@@ -18,5 +18,11 @@ my $trp = DateTime::Format::Strptime->new(
 
 while(<STDIN>){
 my $dt = $trp->parse_datetime($_);
+if ($dt->year==1){
+my $noyear=$dt->add(years => 2000);
+print $noyear->epoch . "\n";
+}
+else{
 print $dt->epoch . "\n";
+}
 }
