@@ -120,9 +120,14 @@ function process_arg {
         test_arg "$1"
         #maybe could a problem to do this when using absolute path
     FIRSTDATE="$(head -n1 "$1" | sed 's/ [^\ ]*$//')"
+    LASTDATE="$(tail -n1 "$1" | sed 's/ [^\ ]*$//')"
         #check return code
-        epoch="$("$(dirname "$0")"/dates.pl "$TIMEFORMAT" "$FIRSTDATE")" || err "Date on first line of $arg is not in correct format"
-        echo "$epoch" "$1">>"${TMP}/unsorted"
+        local firstepoch
+        local lastepoch
+        firstepoch="$("$(dirname "$0")"/dates.pl "$TIMEFORMAT" "$FIRSTDATE")" || err "Date on first line of $arg is not in correct format"
+        lastepoch="$("$(dirname "$0")"/dates.pl "$TIMEFORMAT" "$LASTDATE")" || err "Date on last line of $arg is not in correct format"
+        echo "$firstepoch" "$lastepoch" "$1">>"${TMP}/unsorted"
+
 }
 
 function load_config {
@@ -363,6 +368,19 @@ done
 #sort the files based on the first line
 sort -n "${TMP}/unsorted" >"${TMP}/sorted"
 
+#check overlap
+n=1
+while read line; do
+  firstepoch=$(echo "$line" | awk '{print $2}')
+  filename=$(echo "$line" | awk '{print $NF}')
+  if [[ "$n" -ne 1 ]]; then
+  [[ "$firstepoch" -le "$lastepoch" ]] && err "file $filename overlaps $lastfilename"
+  fi
+  lastfilename=$(echo "$line" | awk '{print $NF}')
+  lastepoch=$(echo "$line" | awk '{print $2}')
+  cat "$filename">>"${TMP}/merge"
+  n=$(($n+1))
+done <"${TMP}/sorted"
 
 verbose "Merging input files"
 #merge the files based on file sorted, as order of lines is checked files cannot overlap

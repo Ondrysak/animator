@@ -166,7 +166,7 @@ echo "#################################################################"
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
 17) echo "#################################################################"
-echo "Testing one valid with timeformat matching the default default and not containing year month or day"
+echo "Testing one valid file with timeformat matching the default default and not containing year month or day"
 echo "-v is used"
 echo "-f config.cfg is used to specify config file YMax 5 YMin -5 Speed 3 Time 10"
 echo "#################################################################"
@@ -174,13 +174,36 @@ echo "#################################################################"
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
 18) echo "#################################################################"
-echo "Testing one valid with timeformat matching the default default and not containing year month or day"
+echo "Testing one valid file with timeformat matching the default default and not containing year month or day"
 echo "-v is used"
 echo "-f config.cfg is used to specify config file YMax 5 YMin -5 Speed 3 Time 10"
 echo "-Y 3 is used to set ymax to 3 overriding config"
 echo "-y min is used to set ymin to min overriding config"
 echo "#################################################################"
 ./animator -v -Y 3 -y min -f config.cfg sin_small.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
+
+19) echo "#################################################################"
+echo "Testing one valid input file with timeformat matching the default but -t is used to produce error in timeformat mismatch"
+echo "-v is used"
+echo "-t '[%H:%M:%S %d.%m.%Y]' is used to set timeformat"
+echo "#################################################################"
+./animator -v -t '[%H:%M:%S %d.%m.%Y]' sin_small.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
+20) echo "#################################################################"
+echo "Testing one invalid input file where timeformat matches default but some lines are misordered"
+echo "-v is used"
+echo "#################################################################"
+./animator -v sin_noncontinuous.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
+21) echo "#################################################################"
+echo "Testing two valid input files where timeformat matches default but files overlap"
+echo "-v is used"
+echo "#################################################################"
+./animator -v sin_small.data sin_small.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
 *) echo "Invalid test number $arg" ;;
