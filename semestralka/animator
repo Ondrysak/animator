@@ -106,8 +106,8 @@ function max_folder {
     [[ -d $file  ]] && [[ $max -lt $temp ]] && max=$temp
   done
   max="$((max + 1))"
-  mkdir "${1}_${max}" ||  err "Could not create folder ${1}_${max}"
-  echo "${1}_${max}"
+  mkdir "${1}_${max}" 2>/dev/null || err "Could not create folder ${1}_${max}"
+  NAME="${1}_${max}"
 }
 function process_arg {
 
@@ -228,7 +228,7 @@ function video {
         done
         verbose "GNUPLOT done, ffmpeg comes into play"
 	#vytvorit slozku pro vystup
-        mkdir $NAME 2>/dev/null || NAME=$(max_folder $NAME)
+        mkdir $NAME 2>/dev/null || max_folder "$NAME"
      # Spojit snimky do videa   
 	if [[ -z "$TIME" ]]; then
         ffmpeg -y -i "$FMT" -- "${PWD}/${NAME}/${OUTPUT}" >/dev/null 2>/dev/null
