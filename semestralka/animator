@@ -57,14 +57,14 @@ function test_arg {
 	#test if last field (value) is in correct format
 	awk -F " " '{print $NF}' "$1" | egrep -v '^-?([0-9]+|[0-9]*\.[0-9]+)$' && err "Bad data format in '$1'"
     #check dates using a perl script and output them in epoch format for a further inspection
-    awk '{$NF=""; print $0}' "$1" | $(dirname $0)/datestd.pl "$TIMEFORMAT" >"${TMP}/epoch" 2>/dev/null || err "Date in $1 is not in correct format"
+    awk '{$NF=""; print $0}' "$1" | "$(dirname "$0")"/datestd.pl "$TIMEFORMAT" >"${TMP}/epoch" 2>/dev/null || err "Date in $1 is not in correct format"
 #inspect if the order is right
 local epoch;
 epoch=0;
 while read line; do
   [[ "$epoch" -le "$line" ]] || err "Xticks in $1 are not continuous"
   epoch="$line"
-done <${TMP}/epoch
+done <"${TMP}/epoch"
     verbose "Argument $1 checked!"
 
 }
@@ -102,10 +102,10 @@ function max_folder {
   max=0
   for file in *
   do
-    temp=$(echo $file | grep -E "^$1_[0-9]+$" | sed "s/${1}_//")
+    temp=$(echo "$file" | grep -E "^$1_[0-9]+$" | sed "s/${1}_//")
     [[ -d $file  ]] && [[ $max -lt $temp ]] && max=$temp
   done
-  max=$(($max + 1))
+  max="$((max + 1))"
   mkdir "${1}_${max}" ||  err "Could not create folder ${1}_${max}"
   echo "${1}_${max}"
 }
@@ -114,10 +114,10 @@ function process_arg {
     verbose "Processing: $1"
         test_arg "$1"
         #maybe could a problem to do this when using absolute path
-    FIRSTDATE="$(head -n1 $1 | sed 's/ [^\ ]*$//')"
+    FIRSTDATE="$(head -n1 "$1" | sed 's/ [^\ ]*$//')"
         #check return code
-        epoch=$($(dirname $0)/dates.pl "$TIMEFORMAT" "$FIRSTDATE") || err "Date on first line of $arg is not in correct format"
-        echo "$epoch" "$1">>${TMP}/unsorted
+        epoch="$("$(dirname "$0")"/dates.pl "$TIMEFORMAT" "$FIRSTDATE")" || err "Date on first line of $arg is not in correct format"
+        echo "$epoch" "$1">>"${TMP}/unsorted"
 }
 
 function load_config {
@@ -129,7 +129,7 @@ verbose "loading config from $1"
     [ -s "$1" ] || err "Config file '$1' is empty"
 #check if only valid directives are used
 directives_regex='((^TIMEFORMAT=)|(^YMAX=)|(^YMIN=)|(^SPEED=)|(^TIME=)|(^EFFECTPARAMS=)|(^NAME=))'
-grep -v '^#' $1 | grep -v '^\s*$' | sed -E 's/[[:space:]]+/ /' | sed 's/#.*$//' | awk '{print toupper($1)"="$2}'>"${TMP}/config"
+grep -v '^#' "$1" | grep -v '^\s*$' | sed -E 's/[[:space:]]+/ /' | sed 's/#.*$//' | awk '{print toupper($1)"="$2}'>"${TMP}/config"
 grep -v -E "$directives_regex" "${TMP}/config" && err "invalid directives used in config"
 source "${TMP}/config"
 verbose "config from $1 loaded"
@@ -137,8 +137,8 @@ verbose "config from $1 loaded"
 
 function parse_eparams {
 #parse eparams separated by :
-TMPDOTS=$( echo $1 | sed 's/:/\n/g' | grep -E -m 1 '^modulo=[0-9]+$' | cut -d'=' -f2 ) 
-TMPTYPE=$( echo $1 | sed 's/:/\n/g' | grep -E -m 1 '^type=[0-9]{1,3}$' | cut -d'=' -f2 )
+TMPDOTS="$( echo "$1" | sed 's/:/\n/g' | grep -E -m 1 '^modulo=[0-9]+$' | cut -d'=' -f2 )"
+TMPTYPE="$( echo "$1" | sed 's/:/\n/g' | grep -E -m 1 '^type=[0-9]{1,3}$' | cut -d'=' -f2 )"
 if [[ -z "$TMPDOTS" ]]; then
 :
 else
@@ -185,13 +185,13 @@ function video {
         TMPYMAX="$YMAX"
         fi
 
-	YRANGE=$( echo "${TMPYMIN}:${TMPYMAX}")
+	YRANGE="${TMPYMIN}:${TMPYMAX}"
 	verbose "$1 has $YRANGE range"
 	
-    TMPXMIN=$(  head -n1 ${DATA} | sed -E 's/ [^ ]+$//' )
-    TMPXMAX=$(  tail -n1 ${DATA} | sed -E 's/ [^ ]+$//' )
-    XRANGE=$( echo "\"${TMPXMIN}\":\"${TMPXMAX}\"")
-    FMT=$TMP/%0${#LINES}d.png
+    TMPXMIN=$(  head -n1 "${DATA}" | sed -E 's/ [^ ]+$//' )
+    TMPXMAX=$(  tail -n1 "${DATA}" | sed -E 's/ [^ ]+$//' )
+    XRANGE="\"${TMPXMIN}\":\"${TMPXMAX}\""
+    FMT="$TMP/%0${#LINES}d.png"
 	verbose "tmp file FMT set to $FMT"
         verbose "timeformat set to $TIMEFORMAT"
         verbose "speed set to $SPEED"
@@ -203,7 +203,7 @@ function video {
         i=1
         k=1
         float=1
-	while [ $i -le $LINES ]
+	while [ $i -le "$LINES" ]
 	do
 		{
 			cat <<-PLOT
@@ -224,7 +224,7 @@ function video {
 		((p=100*i/LINES,p%10==0?first:(first=1,0))) && { vverbose "Done: $p%"; first=0; }
 	        float=$(echo "$float+$SPEED" | bc)
                 i=$(echo "$float/1" | bc)
-                k=$(($k+1))
+                k=$((k+1))
         done
         verbose "GNUPLOT done, ffmpeg comes into play"
 	#vytvorit slozku pro vystup
@@ -235,7 +235,7 @@ function video {
         else
         FPS=$(echo "($LINES)/($TIME*$SPEED)" | bc -l)
         verbose "Calculated FPS based on speed and time is $FPS"
-        ffmpeg -framerate $FPS -y -i "$FMT" -- "${PWD}/${NAME}/${OUTPUT}" >/dev/null 2>/dev/null || err "Something went wrong with ffmpeg"
+        ffmpeg -framerate "$FPS" -y -i "$FMT" -- "${PWD}/${NAME}/${OUTPUT}" >/dev/null 2>/dev/null || err "Something went wrong with ffmpeg"
         fi
 	verbose "Animation is ready ${PWD}/${NAME}/${OUTPUT}"
 
@@ -246,7 +246,7 @@ function video {
 
 #check prequisites
 preq
-# params
+# options
 OPTSTRING='vho:e:t:S:T:y:Y:n:f:'
 
 declare -A used
@@ -352,15 +352,15 @@ fi
 
 done
 #sort the files based on the first line
-cat ${TMP}/unsorted | sort -n >${TMP}/sorted
+sort -n "${TMP}/unsorted" >"${TMP}/sorted"
 
 
 verbose "Merging input files"
 #merge the files based on file sorted, as order of lines is checked files cannot overlap
 while read line; do
-  filename=$(echo $line | awk '{print $NF}')
+  filename=$(echo "$line" | awk '{print $NF}')
   cat "$filename">>"${TMP}/merge"
-done <${TMP}/sorted
+done <"${TMP}/sorted"
 
 verbose "Files merged in  ${TMP}/merge ${#}"
 
