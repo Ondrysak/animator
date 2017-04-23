@@ -189,22 +189,91 @@ echo "Testing one valid input file with timeformat matching the default but -t i
 echo "-v is used"
 echo "-t '[%H:%M:%S %d.%m.%Y]' is used to set timeformat"
 echo "#################################################################"
-./animator -v -t '[%H:%M:%S %d.%m.%Y]' sin_small.data
-exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+./animator -v -t '[%H:%M:%S %d.%m.%Y]' sin_small.data;;
 
 20) echo "#################################################################"
 echo "Testing one invalid input file where timeformat matches default but some lines are misordered"
 echo "-v is used"
 echo "#################################################################"
-./animator -v sin_noncontinuous.data
-exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+./animator -v sin_noncontinuous.data;;
+
 
 21) echo "#################################################################"
 echo "Testing two valid input files where timeformat matches default but files overlap"
 echo "-v is used"
 echo "#################################################################"
-./animator -v sin_small.data sin_small.data
-exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+./animator -v sin_small.data sin_small.data;;
+
+
+22) echo "#################################################################"
+echo "Testing one valid input file where timeformat matches default but -S is used with wrong val"
+echo "-v is used"
+echo "-S superquick"
+echo "#################################################################"
+./animator -v -S superquick sin_small.data;;
+
+23) echo "#################################################################"
+echo "Testing one valid input file where timeformat matches default but -f used with invalid path"
+echo "-v is used"
+echo "-f nothingherer"
+echo "#################################################################"
+./animator -v -f nothinghere sin_small.data;;
+
+24) echo "#################################################################"
+echo "Testing one valid input file where timeformat matches default but -f used with unreadable file"
+echo "-v is used"
+echo "-f /etc/shadow"
+echo "#################################################################"
+./animator -v -f /etc/shadow sin_small.data;;
+
+
+25) echo "#################################################################"
+echo "Testing one valid input file where timeformat matches default but -f used with unreadable file"
+echo "-v is used"
+echo "-f empty.cfg"
+echo "#################################################################"
+./animator -v -f empty.cfg sin_small.data;;
+
+26) echo "#################################################################"
+echo "Testing one valid input file where timeformat matches default and one unreadable file"
+echo "-v is used"
+echo "#################################################################"
+./animator -v sin_small.data /etc/shadow;;
+
+27) echo "#################################################################"
+echo "Testing one valid input file where timeformat matches default and one nonexistent file "
+echo "-v is used"
+echo "#################################################################"
+./animator -v sin_small.data ./nothere;;
+
+28) echo "#################################################################"
+echo "Testing one valid input file where timeformat matches default and one nonexistent file "
+echo "-v is used"
+echo "-f empty.cfg"
+echo "#################################################################"
+./animator -v sin_small.data ./nothere;;
+
+29) echo "#################################################################"
+echo "Testing one valid input file where timeformat matches default and one empty file "
+echo "-v is used"
+echo "-f empty.cfg"
+echo "#################################################################"
+./animator -v sin_small.data empty.data;;
+
+30) echo "#################################################################"
+echo "Testing one valid input file where timeformat matches default and -S is zero"
+echo "-v is used"
+echo "-S 0"
+echo "#################################################################"
+./animator -v -S 0 sin_small.data empty.data;;
+
+
+31) echo "#################################################################"
+echo "Testing one valid input file where timeformat matches default and -S is zero"
+echo "-v is used"
+echo "-S 0.000"
+echo "#################################################################"
+./animator -v -S 0.000 sin_small.data empty.data;;
 
 *) echo "Invalid test number $arg" ;;
 esac
