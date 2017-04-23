@@ -150,6 +150,11 @@ if [[ -z "$TMPTYPE" ]]; then
 else
 TYPE="$TMPTYPE"
 fi
+
+if [[ -z "$TMPDOTS" ]] && [[ -z "$TMPTYPE" ]]; then
+err "-e must follow format key=val:key1=val1 and keys modulo and type can only be used"
+fi
+
 }
 
 function video {
@@ -244,6 +249,8 @@ preq
 # params
 OPTSTRING='vho:e:t:S:T:y:Y:n:f:'
 
+declare -A used
+
 # creating a temp dir
 TMP=$(mktemp -d) || { echo "Cannot create temporary directory" >&2; exit 1; }
 trap 'rm -rf "$TMP"; exit $ECODE' EXIT
@@ -252,12 +259,17 @@ trap 'rm -rf "$TMP"; exit $ECODE' EXIT
 while getopts "$OPTSTRING" opt
 do
 	case $opt in
-	    f) CONFIG="$OPTARG" 
-           load_config "$CONFIG";;
+	    f) 
+           if [[ "${used[f]}" != 1 ]]; then
+           used[f]=1
+           CONFIG="$OPTARG" 
+           load_config "$CONFIG"
+           else
+           err "-f used more than once "	
+           fi;;
         \?) :;
 	esac
 done
-parse_eparams "$EFFECTPARAMS"
 OPTIND=1
 #now load other options overwriting the ones loaded from config
 while getopts "$OPTSTRING" opt
@@ -265,14 +277,49 @@ do
     case $opt in
         v) ((VERBOSE++));;
         h) printf "%s\n" "$USAGE"; ECODE=0; exit ;;
-        o) OUTPUT="$OPTARG";;
+        o) if [[ "${used[o]}" != 1 ]]; then
+           used[o]=1
+           OUTPUT="$OPTARG"
+           else
+           err "-o used more than once "	
+           fi;;
         e) EFFECTPARAMS="$OPTARG"; parse_eparams "$EFFECTPARAMS";;
-        t) TIMEFORMAT="$OPTARG";;
-        S) SPEED="$OPTARG";;
-        T) TIME="$OPTARG";;
-        y) YMIN="$OPTARG";;
-        Y) YMAX="$OPTARG";;
-        n) NAME="$OPTARG";;
+        t) if [[ "${used[t]}" != 1 ]]; then
+           used[t]=1
+           TIMEFORMAT="$OPTARG"
+           else
+           err "-t used more than once "	
+           fi;;
+        S) if [[ "${used[S]}" != 1 ]]; then
+           used[S]=1
+           SPEED="$OPTARG"
+           else
+           err "-S used more than once "	
+           fi;;        
+        T) if [[ "${used[T]}" != 1 ]]; then
+           used[T]=1
+           TIME="$OPTARG"
+           else
+           err "-T used more than once "	
+           fi;;  
+        y) if [[ "${used[y]}" != 1 ]]; then
+           used[y]=1
+           YMIN="$OPTARG"
+           else
+           err "-y used more than once "	
+           fi;; 
+        Y) if [[ "${used[Y]}" != 1 ]]; then
+           used[Y]=1
+           YMAX="$OPTARG"
+           else
+           err "-Y used more than once "	
+           fi;; 
+        n) if [[ "${used[n]}" != 1 ]]; then
+           used[n]=1
+           NAME="$OPTARG"
+           else
+           err "-n used more than once "	
+           fi;; 
         \?) err "$USAGE";
     esac
 done
