@@ -158,13 +158,30 @@ echo "#################################################################"
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
 16) echo "#################################################################"
-echo "Testing one valid input from http source with timeformat not matching the default"
+echo "Testing one valid input from http source with timeformat not matching the default and not containing year month or day"
 echo "-v is used"
 echo "-t '%H:%M:%S' is used to set timeformat"
 echo "#################################################################"
 ./animator -v -t '%H:%M:%S' http://goo.gl/sqOCK
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
+17) echo "#################################################################"
+echo "Testing one valid with timeformat matching the default default and not containing year month or day"
+echo "-v is used"
+echo "-f config.cfg is used to specify config file YMax 5 YMin -5 Speed 3 Time 10"
+echo "#################################################################"
+./animator -v -f config.cfg sin_small.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
+18) echo "#################################################################"
+echo "Testing one valid with timeformat matching the default default and not containing year month or day"
+echo "-v is used"
+echo "-f config.cfg is used to specify config file YMax 5 YMin -5 Speed 3 Time 10"
+echo "-Y 3 is used to set ymax to 3 overriding config"
+echo "-y min is used to set ymin to min overriding config"
+echo "#################################################################"
+./animator -v -Y 3 -y min -f config.cfg sin_small.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
 *) echo "Invalid test number $arg" ;;
 esac
