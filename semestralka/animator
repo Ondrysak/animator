@@ -64,7 +64,6 @@ local k
 k=1
 epoch=0
 while read line; do
-  echo "${k}__${epoch}__${line}"
   if [ "$k" -ne 1 ]; then
   	[[ "$epoch" -le "$line" ]] || err "Xticks in $1 are not continuous line $k";
   fi
