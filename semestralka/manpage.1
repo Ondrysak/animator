@@ -14,88 +14,89 @@ animator \- create graph animation for input data
 [-n \fIname\fR]
 .IR file ...
 .SH DESCRIPTION
-animator creates an .mp4 animaton of given input data with respect to time.
-In resulting animation is firstly continuously displayed curve for moving average calculated from input data,
-which is then followed by curve for actual input data. In the end, the spaces between these two curves
-are filled in by different colours above and below the average curve.
+animator creates an .mp4 animaton of given input data with timebased x axis, points to be intersected with the animated line are shown at the very beggining
 
-Input data can be in more than one file, although time ranges of individual files are expected not to cross each other.
+Input data can be in more than one file,  but timeranges must not overlap, otherwise error is produced.
 Expected format of input data is timestamp in given format and numeric value separated by space.
-Each line of input file contains one such a record.
+Each line of input file contains one record
 
-Parameters of program and resulting animation can be modified by options described in following section and also by configuration file,
-while direct option have higher priority than directives in configuration file in case of collision. In case of multiple
-appearance of an option or directive in configuration file, the last appearance is valid.
+Options used to modify resulting options can be passed as parametres or in a config file, details are described in the following section. Be aware that parametres have higher priority than configfile and in case of multiple use of directives in config file the last occurence is valid.
 
 Resulting animation anim.mp4 is saved in directory specified by \fI-n\fR option.
 
-Executability of this program depends on presence of programs ffmpeg(1) and gnuplot(1).
+This program depends on presence of programs ffmpeg(1), gnuplot(1), perldoc(1), perl(1) and perl module DateTime::Format::Strptime.
 .SH OPTIONS
 .TP
 -e \fIparam=val:param=val...\fR
-Sets effects of animation. \fIparam\fR stands for name of effect parameter, possible names are \fIamplify\fR and \fIsmooth\fR.
-\fIval\fR stands for number defining intensity of the effect. Directive for configuration file is \fIEffectParams\fR.
+Sets effects of animation. \fIparam\fR stands for name of effect parameter, possible params are modulo and type
+\fIval\fR stands for value of parameter
 
-\fIamplify\fR parameter is used for modifying difference between curves for average and actual data for better distinction.
-Number \fIval\fR has to be greater than zero andin this case indicates percentage by which are the actual data supposed to move from average curve.
-Default value is 0.
+\fImodulo\fR parameter is used to modify density of displayed points it must be a positive integer and must be lower than total number of lines in the input files. Default value is 10.
 
-\fIsmooth\fR parameter is used for slight decreasing of graphic noise in graph without bigger changes in curve parameters.
-Number \fIval\fR has to be greater than zero and indicates intensity of smoothing effect.
+\fItype\fR parameter is used to modify type of the 
+Number \fIval\fR has to be greater than zero and indicates intensity of smoothing effect. Default value is 1.
 .TP
+
 -f \fIfile\fR
 Include configuration from \fIfile\fR.
 
 Valid format for options in configuration file is:\fIoption-directive\fR \fIvalue\fR 
 
-There can be only one directive on each line of configuration file, and directive and value are separated by space(s) or tab(s).
+There can be only one directive on each line of configuration file, and directive and value are separated by space(s) or tab(s) or both in any combination.
 The configuration file is case insensitive.
 .TP
 -n \fIname\fR
 Sets \fIname\fR of output directory for resulting animation. If directory of given \fIname\fR exists then \fIname_i\fR directory is used, where i=max(i,0)+1.
-Default value is \fgrapAnimation\fR. Directive for configuration file is \fName\fR.
+Default value is \fdots\fR. Directive for configuration file is \fName\fR.
 .TP
--S \fInumber\fR
-Speed option. Sets number of records from input used for singel frame of animation. Default value is \fI1\fR.
+-S \fIint/float\fR
+Speed option. Sets number of records from input used for single frame of animation. Default value is \fI1\fR. It must be positive.
 Directive for configuration file is \fISpeed\fR. 
 .TP
 -t \fItimeformat\fR
-Time format value. Sets time format of data in input file. Acceptable variables of date format are \fI%[yYmdHMS]\fR.
-Default value is \fI[%Y-%m-%d %H:%M:%S]\fR. Directive for configuration file is \fITimeFormat\fR.
+Time format value. Sets time format of data in input file, it must be a valid strftime.
+Default value is \fI[%Y/%m/%d %H:%M:%S]\fR. Directive for configuration file is \fITimeFormat\fR.
 .TP
--T \fInumber\fR
-Time option. Sets length of resulting animation in seconds. Directive for configuration file is \fITime\fR. 
+-T \fIint/float\fR
+Time option. Sets length of resulting animation in seconds. It must be positive. Directive for configuration file is \fITime\fR. 
 .TP
--y \fInumber\fR/\fImin\fR/\fIauto\fR
-Sets lowest Y-axis value of graph. Possible arguments are specific \fInumber\fR, \fImin\fR keyword or \fIauto\fR keyword.
+-y \fIint/float\fR/\fImin\fR/\fIauto\fR
+Sets lowest Y-axis value of graph. Possible arguments are specific \fIint/float\fR, \fImin\fR keyword or \fIauto\fR keyword.
 
-\fImin\fR sets lowest value from input data. If \fIauto\fR is selected, the range of graph moves with appearing values.
+\fImin\fR sets lowest value from input data, with respect to the effect \fIauto\fR behaves the same.
 
 Default value is \fIauto\fR. Directive for configuration file is \fIYmin\fR.
 .TP
--Y \fInumber\fR/\fImax\fR/\fIauto\fR
-Sets highest Y-axis value of graph. Possible arguments are specific \fInumber\fR, \fImax\fR keyword or \fIauto\fR keyword.
+-Y \fIint/float\fR/\fImax\fR/\fIauto\fR
+Sets highest Y-axis value of graph. Possible arguments are specific \fIint/float\fR, \fImax\fR keyword or \fIauto\fR keyword.
 
-\fImax\fR sets highest value from input data. If \fIauto\fR is selected, the range of graph moves with appearing values.
+\fImax\fR sets highest value from input data, with respect to the effect \fIauto\fR behaves the same.
 
 Default value is \fIauto\fR. Directive for configuration file is \fIYmax\fR.
 .TP
 -v
-Turns on verbose mode. Directiove for configuration file is \fIVerbose\fR.
+Turns on verbose mode.
 
 .SH EXIT STATUS
 There are two possible values we can get on exit of program.
 
 \fI0\fR - animation was succesfully created without fatal error
 
-\fI1\fR - program ended on fatal error without creating animation.
+\fI1\fR - program ended with fatal error without creating animation.
 .SH FILES
-For runnig this program, two files are necessary.
+For runnig this program, three files are necessary.
 
 \fIanimator\fR - script itself.
 
 \fIdates.pl\fR - perl script for strftime processing
+
 \fIdatestd.pl\fR - perl script for strftime processing
+
+There is also test script presnt which accepts any number of arguments which should be number of test to run, it is a good source to learn animators basics
+
+\fItest.sh\fR - test script, example use would be ./test.sh {1..10}
+
+
 
 .SH AUTHOR
 Ondřej Naňka; nankaond@fit.cvut.cz, nankaond@cvut.cz
