@@ -379,7 +379,6 @@ while read line; do
   fi
   lastfilename=$(echo "$line" | awk '{print $NF}')
   lastepoch=$(echo "$line" | awk '{print $2}')
-  cat "$filename">>"${TMP}/merge"
   n=$(($n+1))
 done <"${TMP}/sorted"
 
