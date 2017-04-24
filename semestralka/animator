@@ -44,6 +44,7 @@ YMIN=auto
 YMAX=auto
 #name of output directory
 NAME=dots
+TMPFILE=tmp
 # Functions described well in prog. documentation
 
 function verbose { ((VERBOSE)) && printf "$0[debug]: %s\n" "$@" >&2; }
@@ -104,6 +105,8 @@ perldoc -l DateTime::Format::Strptime >/dev/null || err "Seems like perl module 
 }
 
 function max_folder {
+  local max
+  local temp
   max=0
   for file in *
   do
@@ -113,6 +116,20 @@ function max_folder {
   max="$((max + 1))"
   mkdir "${1}_${max}" 2>/dev/null || err "Could not create folder ${1}_${max}"
   NAME="${1}_${max}"
+}
+function max_file {
+  local max
+  local temp
+  if [[ -f "${TMP}/${TMPFILE}" ]]; then
+  max=0
+  for file in "${TMP}"*
+  do
+    temp=$(echo "$file" | grep -E "^$TMPFILE_[0-9]+$" | sed "s/${TMPFILE}_//")
+    [[ -f $file  ]] && [[ $max -lt $temp ]] && max=$temp
+  done
+  max="$((max + 1))"
+  TMPFILE="${TMPFILE}_${max}";
+  fi
 }
 function process_arg {
 
@@ -359,8 +376,14 @@ do
 
 if [[ "$arg" =~ ^http ]]; then
 verbose "Downloading $arg"
-wget --quiet -O - "$arg" > "${TMP}/download" || err "Download of $arg failed"
-process_arg "${TMP}/download";
+max_file
+wget --quiet -O - "$arg" > "${TMP}/${TMPFILE}" || err "Download of $arg failed"
+process_arg "${TMP}/${TMPFILE}";
+elif [[ "$arg" =~ [[:space:]] ]]; then
+verbose "creating temporary copy of $arg, because its name contains spaces which makes AWK confused"
+max_file
+cp "$arg" "${TMP}/${TMPFILE}"
+process_arg "${TMP}/${TMPFILE}";	
 else
 process_arg "$arg";
 fi
