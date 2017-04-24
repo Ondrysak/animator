@@ -278,12 +278,61 @@ echo "#################################################################"
 32) echo "#################################################################"
 echo "Testing one valid input file with timeformat matching the default"
 echo "-v is used"
-echo "-Y 3 is used to set ymax to 3"
-echo "-y min is used to set ymin to min"
+echo "-Y 1 is used to set ymax to 1"
+echo "-y 0.5 is used to set ymin to 0.5"
 echo "#################################################################"
 ./animator -v -Y 1 -y 0.5 sin_small.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
+33) echo "#################################################################"
+echo "Testing one valid input file with timeformat matching the default"
+echo "-v is used"
+echo "-e modulo=5:type=3 is used"
+echo "#################################################################"
+./animator -v -e "modulo=5:type=3" sin_small.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
+34) echo "#################################################################"
+echo "Testing one valid input file with timeformat matching the default"
+echo "-v is used"
+echo "-e modulo=5:type=3 is used"
+echo "#################################################################"
+./animator -v -e "modulo=5" -e"type=3" sin_small.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
+
+35) echo "#################################################################"
+echo "Testing one valid input file with timeformat matching the default"
+echo "-v is used"
+echo "-e modulo=5:type=3 is used"
+echo "#################################################################"
+./animator -v -e "modulo=5" -e"thisiswrong=3" sin_small.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
+36) echo "#################################################################"
+echo "Testing one valid input file with timeformat matching the default"
+echo "-v is used"
+echo "-e modulo=5:type=3 is used"
+echo "#################################################################"
+./animator -v -S -2 sin_small.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
+37) echo "#################################################################"
+echo "Testing one valid input file with timeformat matching the default"
+echo "-v is used"
+echo "-e modulo=5:type=3 is used"
+echo "#################################################################"
+./animator -v -T -2 sin_small.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
+
+38) echo "#################################################################"
+echo "Testing one valid input file with timeformat matching the default"
+echo "-v is used"
+echo "-e modulo=5:type=3 is used"
+echo "#################################################################"
+./animator -v -e "modulo=300" sin_small.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
 *) echo "Invalid test number $arg" ;;
 esac
