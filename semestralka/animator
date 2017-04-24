@@ -201,6 +201,7 @@ function video {
     TMPXMIN=$(  head -n1 "${DATA}" | sed -E 's/ [^ ]+$//' )
     TMPXMAX=$(  tail -n1 "${DATA}" | sed -E 's/ [^ ]+$//' )
     XRANGE="\"${TMPXMIN}\":\"${TMPXMAX}\""
+    verbose "$1 has $XRANGE xrange"
     FMT="$TMP/%0${#LINES}d.png"
 	verbose "tmp file FMT set to $FMT"
         verbose "timeformat set to $TIMEFORMAT"

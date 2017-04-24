@@ -180,7 +180,7 @@ echo "-f config.cfg is used to specify config file YMax 5 YMin -5 Speed 3 Time 1
 echo "-Y 3 is used to set ymax to 3 overriding config"
 echo "-y min is used to set ymin to min overriding config"
 echo "#################################################################"
-./animator -v -Y 3 -y min -f config.cfg sin_small.data
+./animator -v -Y 3.5 -y min -f config.cfg sin_small.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
 
@@ -274,6 +274,16 @@ echo "-v is used"
 echo "-S 0.000"
 echo "#################################################################"
 ./animator -v -S 0.000 sin_small.data empty.data;;
+
+32) echo "#################################################################"
+echo "Testing one valid input file with timeformat matching the default"
+echo "-v is used"
+echo "-Y 3 is used to set ymax to 3"
+echo "-y min is used to set ymin to min"
+echo "#################################################################"
+./animator -v -Y 1 -y 0.5 sin_small.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
 
 *) echo "Invalid test number $arg" ;;
 esac
