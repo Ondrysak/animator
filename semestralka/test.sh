@@ -334,6 +334,14 @@ echo "#################################################################"
 ./animator -v -e "modulo=300" sin_small.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
+39) echo "#################################################################"
+echo "Testing one valid input file with timeformat matching the default"
+echo "-v is used"
+echo "-t %H:%M:%S is used as it is a valid substring of the timeformat in the input file" 
+echo "#################################################################"
+./animator -v -t "%H:%M:%S" web.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
 *) echo "Invalid test number $arg" ;;
 esac
 done

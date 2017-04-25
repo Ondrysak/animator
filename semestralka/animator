@@ -38,6 +38,7 @@ TYPE=1
 SPEED=1
 #timeformat
 TIMEFORMAT='[%Y/%m/%d %H:%M:%S]'
+FORMATREGEX=''
 #duration
 TIME=''
 YMIN=auto
@@ -56,8 +57,9 @@ function test_arg {
 	[ -r "$1" ] || err "Data file '$1' is not readable"
 	[ -s "$1" ] || err "Data file '$1' is empty"
 	#test if last field (value) is in correct format
-	awk -F " " '{print $NF}' "$1" | egrep -v '^-?([0-9]+|[0-9]*\.[0-9]+)$' && err "Bad data format in '$1'"
-    #check dates using a perl script and output them in epoch format for a further inspection
+	awk -F " " '{print $NF}' "$1" | egrep -v '^-?([0-9]+|[0-9]*\.[0-9]+)$' && err "Bad data format in $1"
+  awk '{$NF=""; print $0}' "$1" | sed 's/ $//' | egrep -v "$FORMATREGEX" >/dev/null && err "Basic regex check of dates failed in file $1"
+    #check dates using a perl sclript and output them in epoch format for a further inspection
     awk '{$NF=""; print $0}' "$1" | "$(dirname "$0")"/datestd.pl "$TIMEFORMAT" >"${TMP}/epoch" 2>/dev/null || err "Date in $1 is not in correct format"	
 	#inspect if the order is right
 	local epoch
@@ -73,6 +75,15 @@ function test_arg {
 	done <"${TMP}/epoch"
     verbose "Argument $1 checked!"
 
+}
+
+ 
+function format_regex {
+local TMPFORMATREGEX
+
+TMPFORMATREGEX="$(echo "$TIMEFORMAT" | sed -E -e 's/\\/\\\\/g' -e 's/\^/\\^/g' -e 's/\$/\\$/g' -e 's/\{/\\{/g' -e 's/\}/\\}/g' -e 's/\[/\\[/g' -e 's/\]/\\]/g' -e 's/\(/\\(/g' -e 's/\)/\\)/g' -e 's/\./\\./g' -e 's/\*/\\*/g' -e 's/\+/\\+/g' -e 's/\&/\\&/g' )"
+FORMATREGEX="$( echo "^${TMPFORMATREGEX}$" | sed -E -e 's/%H/[0-9][0-9]/' -e 's/%M/[0-9][0-9]/' -e 's/%S/[0-9][0-9]/' -e 's/%Y/[0-9][0-9][0-9][0-9]/' -e 's/%y/[0-9][0-9][0-9][0-9]/' -e 's/%m/[0-9][0-9]/' -e 's/%d/[0-9][0-9]/' )"
+verbose "regex used for the first check of the input is $FORMATREGEX"
 }
 
 function validate_params {
@@ -398,7 +409,7 @@ verbose "Options loaded"
 verbose "Temp dir: $TMP"
 #validate loaded parametres
 validate_params
-
+format_regex
 
 
 

@@ -18,6 +18,8 @@ my $trp = DateTime::Format::Strptime->new(
     pattern   => $ARGV[0],
     locale    => 'cs_CZ',
     time_zone => 'Europe/Prague',
+    on_error  => 'croak',
+    strict    => '1'
 );
 
 
