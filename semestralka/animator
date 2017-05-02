@@ -177,7 +177,14 @@ function load_config {
 	directives_regex='((^TIMEFORMAT=)|(^YMAX=)|(^YMIN=)|(^SPEED=)|(^TIME=)|(^EFFECTPARAMS=)|(^NAME=))'
 	grep -v '^#' "$1" | grep -v '^\s*$' | sed -E 's/[[:space:]]+/ /' | sed 's/#.*$//' | awk '{print toupper($1)"="$2}'>"${TMP}/config" || err "Something went wrong when processing config"
 	grep -v -E "$directives_regex" "${TMP}/config" && err " preceding unrecognized directives used in config"
-	#source the file after validating it
+	#directive effectparams can be present more than once and all must be applied
+  grep '^EFFECTPARAMS' "${TMP}/config" > "${TMP}/eparams" || err "Something went wrong when loading config"
+  while read singleparam; do
+    echo "$singleparam">"${TMP}/singleparam" || err "Something went wrong when loading config"
+    source "${TMP}/singleparam" || err "Something went wrong when loading config"
+    parse_eparams "$EFFECTPARAMS"
+  done < "${TMP}/eparams"
+  #source the file after validating it
 	source "${TMP}/config" || err "Something went wrong when loading config"
 	verbose "Config from $1 loaded"
 }
