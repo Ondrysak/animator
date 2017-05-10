@@ -229,10 +229,11 @@ function check_overlap {
 
 function merge_input {
 
-	verbose "Merging input files"
+	verbose "Merging input files in following order"
 	#merge the files based on file sorted, as order of lines is checked files cannot overlap
 	while read line; do
   		filename=$(echo "$line" | awk '{print $NF}')
+      verbose "${filename}"
   		cat "$filename">>"${TMP}/merge" || err "Something wetn wrong when merging"
 	done <"${TMP}/sorted"
 

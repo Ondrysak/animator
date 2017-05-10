@@ -1,8 +1,8 @@
 #!/bin/bash
-set -o errtrace
 type exiftool || echo "you should install exiftool show mediafiles metadata"
 rm -rf ./dots*
 for arg; do
+read -p "Press RETURN key to remove ./dots* and continue..."
 rm -rf ./dots*
 
 case "$arg" in
@@ -340,6 +340,16 @@ echo "-v is used"
 echo "-t %H:%M:%S is used as it is a valid substring of the timeformat in the input file" 
 echo "#################################################################"
 ./animator -v -t "%H:%M:%S" web.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
+
+40) echo "#################################################################"
+echo "Testing one valid input file with timeformat matching the default"
+echo "-v is used"
+echo "-f config EffectParams, as it can appear more than once both modulo and type should apply if used like this EffectParams modulo=10, EffectParams type=2"
+
+echo "#################################################################"
+./animator -v -f config_e.cfg sin_small.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
 *) echo "Invalid test number $arg" ;;
