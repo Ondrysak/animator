@@ -234,7 +234,7 @@ function merge_input {
 	while read line; do
   		filename=$(echo "$line" | awk '{print $NF}')
       verbose "${filename}"
-  		cat "$filename">>"${TMP}/merge" || err "Something wetn wrong when merging"
+  		cat "$filename">>"${TMP}/merge" || err "Something went wrong when merging"
 	done <"${TMP}/sorted"
 
 	verbose "Files merged in  ${TMP}/merge ${#}"
@@ -277,10 +277,9 @@ function video {
     TMPXMAX=$(  tail -n1 "${DATA}" | sed -E 's/ [^ ]+$//' )
     XRANGE="\"${TMPXMIN}\":\"${TMPXMAX}\""
     verbose "$1 has $XRANGE xrange"
-    framecount=$(echo "$LINES/$SPEED" | bc)
-    verbose "Calculated framecount ${framecount}"
+    framecount=$(echo "$LINES/$SPEED+2" | bc)
     FMT="$TMP/%0${#framecount}d.png"
-	verbose "Tmp file FMT set to $FMT"
+	  verbose "Tmp file FMT set to $FMT"
     verbose "Timeformat set to $TIMEFORMAT"
     verbose "Speed set to $SPEED"
     verbose "Point type is $TYPE"	
@@ -289,7 +288,7 @@ function video {
     local float
 
     i=1
-    k=1
+    k=0
     float=1
     #count spaces, gnuplot uses them as separator
     formatspaces=$(echo $TIMEFORMAT | tr -cd ' ' | wc -c)
@@ -297,7 +296,8 @@ function video {
     sepoffset=$(( $formatspaces + 2 ))
     #x and X not supported by gnuplot, substitute them according to en_GB locale
     TIMEFORMAT="$(echo "$TIMEFORMAT" | sed -E -e 's#%x#%d/%m/%y#' -e 's/%X/%H:%M:%S/'  )"
-    
+  local complete;
+  complete=0  
 	while [ "$i" -le "$LINES" ]
 	do
 		{
@@ -317,20 +317,29 @@ function video {
 				PLOT
 			head -n $i "$DATA"
 		} | gnuplot || err "Something went wrong with gnuplot"
-		  float=$(echo "$float+$SPEED" | bc)
-      i=$(echo "$float/1" | bc)
-      k=$((k+1))
-       
+		  
+      
+         float=$(echo "$float+$SPEED" | bc)
+         i=$(echo "$float/1" | bc)
+         k=$((k+1))
+      
+      
+      if [[ "$i" -gt "$LINES" ]]; then
+        if [[ "$complete" -eq 0 ]]; then
+         i="$LINES"
+         complete=1
+        fi
+      fi
+      
     done
-    
-    verbose "GNUPLOT done, ffmpeg comes into play"
+    verbose "GNUPLOT done $k frames generated, ffmpeg comes into play"
 	#create dir for output
     mkdir $NAME 2>/dev/null || max_folder "$NAME"
     #join frames to video using ffmpeg   
 	if [[ -z "$TIME" ]]; then
         ffmpeg -y -i "$FMT" -- "${PWD}/${NAME}/${OUTPUT}" >/dev/null 2>/dev/null || err "Something went wrong with ffmpeg"
     else
-        FPS=$(echo "($LINES)/($TIME*$SPEED)" | bc -l)
+        FPS=$(echo "$k/$TIME" | bc -l)
         verbose "Calculated FPS based on speed and time is $FPS"
         ffmpeg -framerate "$FPS" -y -i "$FMT" -- "${PWD}/${NAME}/${OUTPUT}" >/dev/null 2>/dev/null || err "Something went wrong with ffmpeg"
     fi
