@@ -372,6 +372,14 @@ ln -s dots_2 dots_3
 ./animator -v sin_small.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots_4/anim.mp4 2>/dev/null;;
 
+43) echo "#################################################################"
+echo "Valid input file with newline in its name"
+echo "-v is used"
+echo "#################################################################"
+
+./animator -v "$(printf "sin\nsmall.data")"
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
 *) echo "Invalid test number $arg" ;;
 esac
 done
