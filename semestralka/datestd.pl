@@ -12,7 +12,7 @@ if ($num_args != 1) {
 
 my $trp = DateTime::Format::Strptime->new(
     pattern   => $ARGV[0],
-    locale    => 'cs_CZ',
+    locale    => 'en-GB',
     time_zone => 'Europe/Prague',
 );
 

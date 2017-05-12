@@ -352,6 +352,16 @@ echo "#################################################################"
 ./animator -v -f config_e.cfg sin_small.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
+41) echo "#################################################################"
+echo "Testing one valid input file with timeformat %x %X using en_GB locale"
+echo "-v is used"
+echo "-S 0.2 to slowdown a bit"
+
+echo "#################################################################"
+./animator -v -t "%x %X" -S 0.2 ./%xX_mini.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
 *) echo "Invalid test number $arg" ;;
 esac
 done
+

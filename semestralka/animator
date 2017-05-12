@@ -80,9 +80,9 @@ function test_arg {
  
 function format_regex {
 local TMPFORMATREGEX
-
 TMPFORMATREGEX="$(echo "$TIMEFORMAT" | sed -E -e 's/\\/\\\\/g' -e 's/\^/\\^/g' -e 's/\$/\\$/g' -e 's/\{/\\{/g' -e 's/\}/\\}/g' -e 's/\[/\\[/g' -e 's/\]/\\]/g' -e 's/\(/\\(/g' -e 's/\)/\\)/g' -e 's/\./\\./g' -e 's/\*/\\*/g' -e 's/\+/\\+/g' -e 's/\&/\\&/g' )"
-FORMATREGEX="$( echo "^${TMPFORMATREGEX}$" | sed -E -e 's/%H/[0-9][0-9]/' -e 's/%M/[0-9][0-9]/' -e 's/%S/[0-9][0-9]/' -e 's/%Y/[0-9][0-9][0-9][0-9]/' -e 's/%y/[0-9][0-9][0-9][0-9]/' -e 's/%m/[0-9][0-9]/' -e 's/%d/[0-9][0-9]/' )"
+TMPFORMATREGEX="$(echo "$TMPFORMATREGEX" | sed -E -e 's#%x#%d/%m/%y#' -e 's/%X/%H:%M:%S/'  )"
+FORMATREGEX="$( echo "^${TMPFORMATREGEX}$" | sed -E -e 's/%H/[0-9][0-9]/' -e 's/%M/[0-9][0-9]/' -e 's/%S/[0-9][0-9]/' -e 's/%Y/[0-9][0-9][0-9][0-9]/' -e 's/%y/[0-9][0-9]/' -e 's/%m/[0-9][0-9]/' -e 's/%d/[0-9][0-9]/' )"
 verbose "regex used for the first check of the input is $FORMATREGEX"
 }
 
@@ -247,7 +247,7 @@ function video {
 	DATA=$1
     verbose "Using modulo $DOTS for points"
 	#create file with dots using awk and row numbers
-	awk -v DTCOUNT="$DOTS" 'NR%DTCOUNT==0 {print $0}' "$1">"${TMP}/dots" || err "Something went wrong when creating second dataset for gnuplot"
+	awk -v DTCOUNT="$DOTS" 'NR%DTCOUNT==1 {print $0}' "$1">"${TMP}/dots" || err "Something went wrong when creating second dataset for gnuplot"
 
 	# Limity podle datoveho souboru
 	LINES=$(wc -l <"$DATA")
@@ -295,12 +295,15 @@ function video {
     formatspaces=$(echo $TIMEFORMAT | tr -cd ' ' | wc -c)
     #calculate gnuplot offset with respect to number of spaces in timeformat
     sepoffset=$(( $formatspaces + 2 ))
+    #x and X not supported by gnuplot, substitute them according to en_GB locale
+    TIMEFORMAT="$(echo "$TIMEFORMAT" | sed -E -e 's#%x#%d/%m/%y#' -e 's/%X/%H:%M:%S/'  )"
     
 	while [ "$i" -le "$LINES" ]
 	do
 		{
 			cat <<-PLOT
 				set terminal png
+        set locale "en_GB.UTF-8"
                 set timefmt "$TIMEFORMAT"
 				set xdata time
                 set yrange [$YRANGE]
@@ -313,7 +316,7 @@ function video {
 				plot '-' using 1:$sepoffset with lines t '', "${TMP}/dots" using 1:$sepoffset w p pt ${TYPE} t '' 
 				PLOT
 			head -n $i "$DATA"
-		} | gnuplot 2>/dev/null || err "Something went wrong with gnuplot"
+		} | gnuplot || err "Something went wrong with gnuplot"
 		  float=$(echo "$float+$SPEED" | bc)
       i=$(echo "$float/1" | bc)
       k=$((k+1))
