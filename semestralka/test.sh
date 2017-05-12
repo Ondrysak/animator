@@ -361,6 +361,17 @@ echo "#################################################################"
 ./animator -v -t "%x %X" -S 0.2 ./%xX_mini.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
+
+42) echo "#################################################################"
+echo "Testing max_folders reaction to files and symlinks with one input file matching default timeformat"
+echo "-v is used"
+echo "#################################################################"
+touch dots dots_1
+ln -s dots_1 dots_2
+ln -s dots_2 dots_3
+./animator -v sin_small.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots_4/anim.mp4 2>/dev/null;;
+
 *) echo "Invalid test number $arg" ;;
 esac
 done

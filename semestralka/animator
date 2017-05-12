@@ -124,7 +124,7 @@ function max_folder {
   	for file in *
   	do
     	temp=$(echo "$file" | grep -E "^$1_[0-9]+$" | sed "s/${1}_//")
-    	[[ -d $file  ]] && [[ $max -lt $temp ]] && max=$temp
+    	[[ $max -lt $temp ]] && max=$temp
   	done
   	#increment it by one
   	max="$((max + 1))"
