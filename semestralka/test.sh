@@ -381,7 +381,7 @@ echo "#################################################################"
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
 44) echo "#################################################################"
-echo "Valid input file with newline in its name"
+echo "Valid input"
 echo "-S 50 and -T 10 is used to test case where there is few frames but we want animatiion to be long"
 echo "#################################################################"
 
@@ -389,14 +389,20 @@ echo "#################################################################"
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
 45) echo "#################################################################"
-echo "Valid input file with newline in its name"
+echo "Valid input file"
 echo "-S 1 and -T 0.5 is used to test case where there is many frame but  we want animatiion to be short"
 echo "#################################################################"
 
 ./animator -v -S 1 -T 0.5 sin_small.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
+46) echo "#################################################################"
+echo "Valid input matching default timeformat"
+echo "-e invalid number of gnuplot point"
+echo "#################################################################"
 
+./animator -v -e "modulo=10:type=201" sin_small.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
 *) echo "Invalid test number $arg" ;;
 esac
