@@ -404,6 +404,38 @@ echo "#################################################################"
 ./animator -v -e "modulo=10:type=201" sin_small.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
+47) echo "#################################################################"
+echo "Testing one valid input file with timeformat not matching the default"
+echo "-v is used"
+echo "-t '[%Y/%m/%d %H:%M:%S]' is used to set timeformat"
+echo "#################################################################"
+./animator -v -t '[%Y/%m/%d %H:%M:%S]' sin_week_int.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
+48) echo "#################################################################"
+echo "Testing one valid input file with timeformat not matching the default"
+echo "-v is used"
+echo "-t '[%Y/%m/%d %H:%M:%S]' is used to set timeformat"
+echo "#################################################################"
+./animator -v -t '[%Y/%m/%d %H:%M:%S]' sin_week_int_part.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
+49) echo "#################################################################"
+echo "Testing one valid input file with timeformat not matching the default"
+echo "-v is used"
+echo "-t '[%Y/%m/%d %H:%M:%S]'is used to set timeformat"
+echo "#################################################################"
+./animator -v -t '[%Y/%m/%d %H:%M:%S]' sin_week_real.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
+50) echo "#################################################################"
+echo "Testing one valid input file with timeformat not matching the default"
+echo "-v is used"
+echo "-t '[%Y/%m/%d %H:%M:%S]' is used to set timeformat"
+echo "#################################################################"
+./animator -v -t '[%Y/%m/%d %H:%M:%S]' sin_week_real_part.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
 *) echo "Invalid test number $arg" ;;
 esac
 done
