@@ -280,6 +280,20 @@ echo "#################################################################"
 ./animator -v -f "config space.cfg" sin_small.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
+34) echo "#################################################################"
+echo "Testing one valid file with quote in name"
+echo "-v is used"
+echo "#################################################################"
+./animator -v sin\'small.data 
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
+35) echo "#################################################################"
+echo "Testing one valid file with double quote in name"
+echo "-v is used"
+echo "#################################################################"
+./animator -v sin\"small.data 
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
 
 101) echo "#################################################################"
 echo "Valid input matching default timeformat"

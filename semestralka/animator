@@ -18,7 +18,6 @@ USAGE+=("           -S  speed of loading data")
 USAGE+=("           -t  format of time in files")
 USAGE+=("           -T  duration of the resulting animation")
 USAGE+=("           -n  folder in which animation will be created")
-USAGE+=("           -o  output name")
 USAGE+=("           -y  ymin")
 USAGE+=("           -Y  ymax")
 USAGE+=("           -f  path to valid config file for directives see manual")
@@ -28,7 +27,7 @@ USAGE+=("           -h  this help")
 ECODE=1
 #verbosity level
 VERBOSE=0
-#output suffix
+#output suffix, undocumented -o can be used to change this, its not tested very well 
 OUTPUT=anim.mp4
 #effect modulo
 DOTS=10
