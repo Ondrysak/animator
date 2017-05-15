@@ -305,15 +305,15 @@ function video {
 			cat <<-PLOT
 				set terminal png
         set locale "en_GB.UTF-8"
-                set timefmt "$TIMEFORMAT"
+        set timefmt "$TIMEFORMAT"
 				set xdata time
-                set yrange [$YRANGE]
-                set xrange [$XRANGE]
-                set format x"$TIMEFORMAT"
-                set xtics rotate by -45
-                set rmargin 15
-                set grid
-                set output "$(printf "$FMT" $k)"
+        set yrange [$YRANGE]
+        set xrange [$XRANGE]
+        set format x"$TIMEFORMAT"
+        set xtics rotate by -45
+        set rmargin 15
+        set grid
+        set output "$(printf "$FMT" $k)"
 				plot '-' using 1:$sepoffset with lines t '', "${TMP}/dots" using 1:$sepoffset w p pt ${TYPE} t '' 
 				PLOT
 			head -n $i "$DATA"

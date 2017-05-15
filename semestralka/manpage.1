@@ -34,7 +34,9 @@ Sets effects of animation. \fIparam\fR stands for name of effect parameter, poss
 \fImodulo\fR parameter is used to modify density of displayed points it must be a positive integer and must be lower than total number of lines in the input files. Default value is 10.
 
 \fItype\fR parameter is used to modify type of the point used for effect
-Number \fIval\fR has to be greater than zero and indicates gnuplot point type, for more info see documentation of gnuplot. Default value is 1.
+Number \fIval\fR has to be greater than 0 and less than 200, it indicates gnuplot point type, for more info see documentation of gnuplot. Default value is 1.
+
+The -e option may be used more than once
 .TP
 
 -f \fIfile\fR
