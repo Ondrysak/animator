@@ -323,7 +323,7 @@ function video {
          float=$(echo "$float+$SPEED" | bc)
          i=$(echo "$float/1" | bc)
          k=$((k+1))
-      
+         vverbose "Frame $k generated!"     
       #if speed was setup so badly that we missed a lot of data this takes care of the one final frame which contains all data
       if [[ "$i" -gt "$LINES" ]]; then
         if [[ "$complete" -eq 0 ]]; then

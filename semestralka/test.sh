@@ -265,6 +265,14 @@ echo "#################################################################"
 ./animator -v ./http.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
+32) echo "#################################################################"
+echo "Valid input file with timeformat matching the default"
+echo "Demonstrating double usage of -v "
+echo "#################################################################"
+./animator -v -v  ./sin_small.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
+
 
 101) echo "#################################################################"
 echo "Valid input matching default timeformat"
