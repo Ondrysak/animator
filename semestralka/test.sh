@@ -267,7 +267,7 @@ exiftool -directory -filename -filetype -filesize -duration -videoframerate ./do
 
 32) echo "#################################################################"
 echo "Valid input file with timeformat matching the default"
-echo "Demonstrating double usage of -v "
+echo "Demonstrating double usage of -v"
 echo "#################################################################"
 ./animator -v -v  ./sin_small.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
