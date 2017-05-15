@@ -57,9 +57,10 @@ function test_arg {
 	[ -s "$1" ] || err "Data file '$1' is empty"
 	#test if last field (value) is in correct format
 	awk -F " " '{print $NF}' "$1" | egrep -v '^-?([0-9]+|[0-9]*\.[0-9]+)$' && err "Bad data format in $1"
+  #
   awk '{$NF=""; print $0}' "$1" | sed 's/ $//' | egrep -v "$FORMATREGEX" >/dev/null && err "Basic regex check of dates failed in file $1"
-    #check dates using a perl sclript and output them in epoch format for a further inspection
-    awk '{$NF=""; print $0}' "$1" | "$(dirname "$0")"/datestd.pl "$TIMEFORMAT" >"${TMP}/epoch" 2>/dev/null || err "Date in $1 is not in correct format"	
+  #check dates using a perl script and output them in epoch format for a further inspection, dirname substitution is used because we have not PWD guarateed
+  awk '{$NF=""; print $0}' "$1" | "$(dirname "$0")"/datestd.pl "$TIMEFORMAT" >"${TMP}/epoch" 2>/dev/null || err "Date in $1 is not in correct format"	
 	#inspect if the order is right
 	local epoch
 	local k
@@ -78,10 +79,10 @@ function test_arg {
 
  
 function format_regex {
-local TMPFORMATREGEX
-TMPFORMATREGEX="$(echo "$TIMEFORMAT" | sed -E -e 's/\\/\\\\/g' -e 's/\^/\\^/g' -e 's/\$/\\$/g' -e 's/\{/\\{/g' -e 's/\}/\\}/g' -e 's/\[/\\[/g' -e 's/\]/\\]/g' -e 's/\(/\\(/g' -e 's/\)/\\)/g' -e 's/\./\\./g' -e 's/\*/\\*/g' -e 's/\+/\\+/g' -e 's/\&/\\&/g' )"
-TMPFORMATREGEX="$(echo "$TMPFORMATREGEX" | sed -E -e 's#%x#%d/%m/%y#' -e 's/%X/%H:%M:%S/'  )"
-FORMATREGEX="$( echo "^${TMPFORMATREGEX}$" | sed -E -e 's/%H/[0-9][0-9]/' -e 's/%M/[0-9][0-9]/' -e 's/%S/[0-9][0-9]/' -e 's/%Y/[0-9][0-9][0-9][0-9]/' -e 's/%y/[0-9][0-9]/' -e 's/%m/[0-9][0-9]/' -e 's/%d/[0-9][0-9]/' )"
+
+FORMATREGEX="$(echo "$TIMEFORMAT" | sed -E -e 's/\\/\\\\/g' -e 's/\^/\\^/g' -e 's/\$/\\$/g' -e 's/\{/\\{/g' -e 's/\}/\\}/g' -e 's/\[/\\[/g' -e 's/\]/\\]/g' -e 's/\(/\\(/g' -e 's/\)/\\)/g' -e 's/\./\\./g' -e 's/\*/\\*/g' -e 's/\+/\\+/g' -e 's/\&/\\&/g' )"
+FORMATREGEX="$(echo "$FORMATREGEX" | sed -E -e 's#%x#%d/%m/%y#' -e 's/%X/%H:%M:%S/'  )"
+FORMATREGEX="$( echo "^${FORMATREGEX}$" | sed -E -e 's/%H/[0-9][0-9]/' -e 's/%M/[0-9][0-9]/' -e 's/%S/[0-9][0-9]/' -e 's/%Y/[0-9][0-9][0-9][0-9]/' -e 's/%y/[0-9][0-9]/' -e 's/%m/[0-9][0-9]/' -e 's/%d/[0-9][0-9]/' )"
 verbose "regex used for the first check of the input is $FORMATREGEX"
 }
 
@@ -97,7 +98,7 @@ function validate_params {
 	[[ "$SPEED" =~ ^[0-9]+\.*[0-9]*$ ]] || err "speed must be either  positive integer or a positive float number"
 	[[ "$SPEED" =~ ^0\.*0*$ ]] && err "speed cannot be 0"
 
-	# how to validate timeformat TIMEFORMAT='[%Y/%m/%d %H:%M:%S]'
+	
 	[[ "$TIME" =~ ((^[0-9]+\.*[0-9]*$)|(^$)) ]] || err "time must be either positive integer or a positive float number"
 	[[ "$YMIN" =~ ((^auto$)|(^min$)|(^-*[0-9]+\.*[0-9]*$)) ]] || err "ymin must be either integer, float number, min, max or auto"
 	[[ "$YMAX" =~ ((^auto$)|(^max$)|(^-*[0-9]+\.*[0-9]*$)) ]] || err "ymax must be either integer, float number,min, max or auto"
@@ -153,13 +154,13 @@ function process_arg {
     verbose "Processing: $1"
     test_arg "$1"
     #first and last date in variable using 
-    FIRSTDATE="$(head -n1 "$1" | sed 's/ [^\ ]*$//')"
-    LASTDATE="$(tail -n1 "$1" | sed 's/ [^\ ]*$//')"
+    firstdate="$(head -n1 "$1" | sed 's/ [^\ ]*$//')"
+    lastdate="$(tail -n1 "$1" | sed 's/ [^\ ]*$//')"
     local firstepoch
     local lastepoch
     #converting first and last date to epoch
-    firstepoch="$("$(dirname "$0")"/dates.pl "$TIMEFORMAT" "$FIRSTDATE")" || err "Date on first line of $arg is not in correct format"
-    lastepoch="$("$(dirname "$0")"/dates.pl "$TIMEFORMAT" "$LASTDATE")" || err "Date on last line of $arg is not in correct format"
+    firstepoch="$("$(dirname "$0")"/dates.pl "$TIMEFORMAT" "$firstdate")" || err "Date on first line of $arg is not in correct format"
+    lastepoch="$("$(dirname "$0")"/dates.pl "$TIMEFORMAT" "$lastdate")" || err "Date on last line of $arg is not in correct format"
     #file to be sorted later
     echo "$firstepoch" "$lastepoch" "$1">>"${TMP}/unsorted" || err "Something went wrong when processing arguments"
 
@@ -174,12 +175,14 @@ function load_config {
 	[ -s "$1" ] || err "Config file '$1' is empty"
 	#check if only valid directives are used
 	directives_regex='((^TIMEFORMAT=)|(^YMAX=)|(^YMIN=)|(^SPEED=)|(^TIME=)|(^EFFECTPARAMS=)|(^NAME=))'
+  #create sourcable file from the config
 	grep -v '^#' "$1" | grep -v '^\s*$' | sed -E 's/[[:space:]]+/ /' | sed 's/#.*$//' | awk '{print toupper($1)"="$2}'>"${TMP}/config" || err "Something went wrong when processing config"
   [[ -f "${TMP}/config" ]] || err "Something went wrong when processing config"
 	grep -v -E "$directives_regex" "${TMP}/config" && err " preceding unrecognized directives used in config"
 	#directive effectparams can be present more than once and all must be applied
   grep '^EFFECTPARAMS' "${TMP}/config" > "${TMP}/eparams" 
   [[ -f "${TMP}/eparams" ]] || err "Something went wrong when processing config"
+  #just in case, effect params was present with more keys 
   while read singleparam; do
     echo "$singleparam">"${TMP}/singleparam" || err "Something went wrong when loading config (singleparam creating) "
     source "${TMP}/singleparam" || err "Something went wrong when loading config (singleparam sourcing)."
@@ -191,22 +194,24 @@ function load_config {
 }
 
 function parse_eparams {
-	#parse eparams separated by :
-	TMPDOTS="$( echo "$1" | sed 's/:/\n/g' | grep -E -m 1 '^modulo=[0-9]+$' | cut -d'=' -f2 )"
-	TMPTYPE="$( echo "$1" | sed 's/:/\n/g' | grep -E -m 1 '^type=[0-9]{1,3}$' | cut -d'=' -f2 )"
-	if [[ -z "$TMPDOTS" ]]; then
+  local tmptype
+  local tmpdots
+	#parse eparams separated by:
+	tmpdots="$( echo "$1" | sed 's/:/\n/g' | grep -E -m 1 '^modulo=[0-9]+$' | cut -d'=' -f2 )"
+	tmptype="$( echo "$1" | sed 's/:/\n/g' | grep -E -m 1 '^type=[0-9]{1,3}$' | cut -d'=' -f2 )"
+	if [[ -z "$tmpdots" ]]; then
 		:
 	else
-		DOTS="$TMPDOTS"
+		DOTS="$tmpdots"
 	fi    
 
-	if [[ -z "$TMPTYPE" ]]; then
+	if [[ -z "$tmptype" ]]; then
 		:
 	else
-		TYPE="$TMPTYPE"
+		TYPE="$tmptype"
 	fi
     #if no valid params are found than something must went wrong
-	if [[ -z "$TMPDOTS" ]] && [[ -z "$TMPTYPE" ]]; then
+	if [[ -z "$tmpdots" ]] && [[ -z "$tmptype" ]]; then
 		err "-e must follow format key=val:key1=val1 and keys modulo and type can only be used"
 	fi
 
@@ -238,7 +243,7 @@ function merge_input {
   		cat "$filename">>"${TMP}/merge" || err "Something went wrong when merging"
 	done <"${TMP}/sorted"
 
-	verbose "Files merged in  ${TMP}/merge ${#}"
+	verbose "Files merged in  ${TMP}/merge $(cat ${TMP}/sorted | wc -l)"
 
 }
 
@@ -256,28 +261,29 @@ function video {
 	verbose "$1 has $LINES lines"
     #ymin ymax dle parametru
     if [ "$YMIN" = auto ]; then
-		TMPYMIN=$( awk -F " " '{print $NF}' "$DATA" | sort -n | sed -n '1p')
+		tmpymin=$( awk -F " " '{print $NF}' "$DATA" | sort -n | sed -n '1p')
     elif [ "$YMIN" = min ]; then
-        TMPYMIN=$( awk -F " " '{print $NF}' "$DATA" | sort -n | sed -n '1p')
+        tmpymin=$( awk -F " " '{print $NF}' "$DATA" | sort -n | sed -n '1p')
     else
-        TMPYMIN="$YMIN"
+        tmpymin="$YMIN"
     fi
 
     if [ "$YMAX" = auto ]; then
-        TMPYMAX=$( awk -F " " '{print $NF}' "$DATA" | sort -n | sed -n '$p')
+        tmpymax=$( awk -F " " '{print $NF}' "$DATA" | sort -n | sed -n '$p')
     elif [ "$YMAX" = max ]; then
-        TMPYMAX=$( awk -F " " '{print $NF}' "$DATA" | sort -n | sed -n '$p')
+        tmpymax=$( awk -F " " '{print $NF}' "$DATA" | sort -n | sed -n '$p')
     else
-        TMPYMAX="$YMAX"
+        tmpymax="$YMAX"
     fi
 
-	YRANGE="${TMPYMIN}:${TMPYMAX}"
+	YRANGE="${tmpymin}:${tmpymax}"
 	verbose "Yrange set to $YRANGE"
 	  local framecount
-    TMPXMIN=$(  head -n1 "${DATA}" | sed -E 's/ [^ ]+$//' )
-    TMPXMAX=$(  tail -n1 "${DATA}" | sed -E 's/ [^ ]+$//' )
-    XRANGE="\"${TMPXMIN}\":\"${TMPXMAX}\""
+    tmpxmin=$(  head -n1 "${DATA}" | sed -E 's/ [^ ]+$//' )
+    tmpxmax=$(  tail -n1 "${DATA}" | sed -E 's/ [^ ]+$//' )
+    XRANGE="\"${tmpxmin}\":\"${tmpxmax}\""
     verbose "$1 has $XRANGE xrange"
+    #upper limit for any speed
     framecount=$(echo "$LINES/$SPEED+2" | bc)
     FMT="$TMP/%0${#framecount}d.png"
 	  verbose "Tmp file FMT set to $FMT"
@@ -297,7 +303,7 @@ function video {
     sepoffset=$(( formatspaces + 2 ))
     #x and X not supported by gnuplot, substitute them according to en_GB locale
     TIMEFORMAT="$(echo "$TIMEFORMAT" | sed -E -e 's#%x#%d/%m/%y#' -e 's/%X/%H:%M:%S/'  )"
-  #used to indicate if we finished generating data
+  #used to indicate if we already did the final step containing all data
   local complete;
   complete=0  
 	while [ "$i" -le "$LINES" ]
@@ -342,7 +348,7 @@ function video {
         ffmpeg -y -i "$FMT" -- "${PWD}/${NAME}/${OUTPUT}" >/dev/null 2>/dev/null || err "Something went wrong with ffmpeg"
   else
         FPS=$(echo "$k/$TIME" | bc -l)
-        verbose "Calculated FPS based on speed and time is $FPS"
+        verbose "Calculated FPS based on frames and time is $FPS"
         ffmpeg -framerate "$FPS" -y -i "$FMT" -- "${PWD}/${NAME}/${OUTPUT}" >/dev/null 2>/dev/null || err "Something went wrong with ffmpeg"
   fi
 	verbose "Animation is ready ${PWD}/${NAME}/${OUTPUT}"
@@ -351,8 +357,8 @@ function video {
 
 
 ##############################
-TMP=$(mktemp -d) || { echo "Cannot create temporary directory" >&2; exit 1; }
-trap 'rm -rf "$TMP"; exit $ECODE' EXIT
+TMP=$(mktemp -d 2>/dev/null) || err "Cannot create temporary directory in /tmp"
+trap 'rm -rf "$TMP" 2>/dev/null || err "Could not remove temporary directory"; exit $ECODE' EXIT
 
 #check prequisites
 preq
@@ -459,24 +465,24 @@ for arg
 do
 #if argu
 if [[ "$arg" =~ ^http ]] && ! [ -f "$arg" ]; then
-verbose "Downloading $arg"
-max_file
-wget --quiet -O - "$arg" > "${TMP}/${TMPFILE}" || err "Download of $arg failed"
-process_arg "${TMP}/${TMPFILE}";
+ verbose "Downloading $arg"
+ max_file
+ wget --quiet -O - "$arg" > "${TMP}/${TMPFILE}" || err "Download of $arg failed"
+ process_arg "${TMP}/${TMPFILE}";
 elif [[ "$arg" =~ [[:space:]] ]]; then
-verbose "Creating temporary copy of $arg, because its name contains spaces which makes AWK confused"
-max_file
+ verbose "Creating temporary copy of $arg, because its name contains spaces which makes AWK confused"
+ max_file
 cp "$arg" "${TMP}/${TMPFILE}" || err "Something went wrong with copying to ${TMP}"
-process_arg "${TMP}/${TMPFILE}";	
+ process_arg "${TMP}/${TMPFILE}";	
 else
-process_arg "$arg";
+ process_arg "$arg";
 fi
 
 done
 #sort the files based on the first line
 sort -n "${TMP}/unsorted" >"${TMP}/sorted" || err "Something went wrong when sorting before merge"
 
-#check overlap
+
 check_overlap
 
 merge_input
