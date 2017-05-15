@@ -176,16 +176,18 @@ function load_config {
 	#check if only valid directives are used
 	directives_regex='((^TIMEFORMAT=)|(^YMAX=)|(^YMIN=)|(^SPEED=)|(^TIME=)|(^EFFECTPARAMS=)|(^NAME=))'
 	grep -v '^#' "$1" | grep -v '^\s*$' | sed -E 's/[[:space:]]+/ /' | sed 's/#.*$//' | awk '{print toupper($1)"="$2}'>"${TMP}/config" || err "Something went wrong when processing config"
+  [[ -f "${TMP}/config" ]] || err "Something went wrong when processing config"
 	grep -v -E "$directives_regex" "${TMP}/config" && err " preceding unrecognized directives used in config"
 	#directive effectparams can be present more than once and all must be applied
-  grep '^EFFECTPARAMS' "${TMP}/config" > "${TMP}/eparams" || err "Something went wrong when loading config"
+  grep '^EFFECTPARAMS' "${TMP}/config" > "${TMP}/eparams" 
+  [[ -f "${TMP}/eparams" ]] || err "Something went wrong when processing config"
   while read singleparam; do
-    echo "$singleparam">"${TMP}/singleparam" || err "Something went wrong when loading config"
-    source "${TMP}/singleparam" || err "Something went wrong when loading config"
+    echo "$singleparam">"${TMP}/singleparam" || err "Something went wrong when loading config (singleparam creating) "
+    source "${TMP}/singleparam" || err "Something went wrong when loading config (singleparam sourcing)."
     parse_eparams "$EFFECTPARAMS"
   done < "${TMP}/eparams"
   #source the file after validating it
-	source "${TMP}/config" || err "Something went wrong when loading config"
+	source "${TMP}/config" || err "Something went wrong when loading config (sourcing new stripped config)"
 	verbose "Config from $1 loaded"
 }
 
@@ -361,8 +363,16 @@ OPTSTRING='vho:e:t:S:T:y:Y:n:f:'
 declare -A used
 
 # creating a temp dir
-
-#looking for config first
+#looking for verbosity
+while getopts "$OPTSTRING" opt
+do
+  case $opt in
+     v) ((VERBOSE++));;
+     \?) :;
+  esac
+done
+OPTIND=1
+#looking for config
 while getopts "$OPTSTRING" opt
 do
 	case $opt in
@@ -382,7 +392,6 @@ OPTIND=1
 while getopts "$OPTSTRING" opt
 do
     case $opt in
-        v) ((VERBOSE++));;
         h) printf "%s\n" "$USAGE"; ECODE=0; exit ;;
         o) if [[ "${used[o]}" != 1 ]]; then
            used[o]=1

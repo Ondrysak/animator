@@ -272,6 +272,13 @@ echo "#################################################################"
 ./animator -v -v  ./sin_small.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
+33) echo "#################################################################"
+echo "Testing one valid file with timeformat matching the default default and not containing year month or day"
+echo "-v is used"
+echo "-f config.cfg is used to specify config file YMax 5 YMin -5 Speed 3 Time 10"
+echo "#################################################################"
+./animator -v -f "config space.cfg" sin_small.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
 
 101) echo "#################################################################"
