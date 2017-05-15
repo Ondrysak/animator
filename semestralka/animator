@@ -141,7 +141,7 @@ function max_file {
   		max=0
   		for file in "${TMP}"*
   		do
-    		temp=$(echo "$file" | grep -E "^$TMPFILE_[0-9]+$" | sed "s/${TMPFILE}_//")
+    		temp=$(echo "$file" | grep -E "^${TMPFILE}_[0-9]+$" | sed "s/${TMPFILE}_//")
     		[[ -f $file  ]] && [[ $max -lt $temp ]] && max=$temp
   		done
   		max="$((max + 1))"
@@ -222,7 +222,7 @@ function check_overlap {
   		fi
   		lastfilename=$(echo "$line" | awk '{print $NF}')
   		lastepoch=$(echo "$line" | awk '{print $2}')
-  		n=$(($n+1))
+  		n=$((n+1))
 	done <"${TMP}/sorted"
 
 }
@@ -291,9 +291,9 @@ function video {
     k=0
     float=1
     #count spaces, gnuplot uses them as separator
-    formatspaces=$(echo $TIMEFORMAT | tr -cd ' ' | wc -c)
+    formatspaces=$(echo "$TIMEFORMAT" | tr -cd ' ' | wc -c)
     #calculate gnuplot offset with respect to number of spaces in timeformat
-    sepoffset=$(( $formatspaces + 2 ))
+    sepoffset=$(( formatspaces + 2 ))
     #x and X not supported by gnuplot, substitute them according to en_GB locale
     TIMEFORMAT="$(echo "$TIMEFORMAT" | sed -E -e 's#%x#%d/%m/%y#' -e 's/%X/%H:%M:%S/'  )"
   #used to indicate if we finished generating data
@@ -332,18 +332,18 @@ function video {
         fi
       fi
       
-    done
-    verbose "GNUPLOT done $k frames generated, ffmpeg comes into play"
+  done
+  verbose "GNUPLOT done $k frames generated, ffmpeg comes into play"
 	#create dir for output
-    mkdir $NAME 2>/dev/null || max_folder "$NAME"
-    #join frames to video using ffmpeg   
+  mkdir "$NAME" 2>/dev/null || max_folder "$NAME"
+  #join frames to video using ffmpeg   
 	if [[ -z "$TIME" ]]; then
         ffmpeg -y -i "$FMT" -- "${PWD}/${NAME}/${OUTPUT}" >/dev/null 2>/dev/null || err "Something went wrong with ffmpeg"
-    else
+  else
         FPS=$(echo "$k/$TIME" | bc -l)
         verbose "Calculated FPS based on speed and time is $FPS"
         ffmpeg -framerate "$FPS" -y -i "$FMT" -- "${PWD}/${NAME}/${OUTPUT}" >/dev/null 2>/dev/null || err "Something went wrong with ffmpeg"
-    fi
+  fi
 	verbose "Animation is ready ${PWD}/${NAME}/${OUTPUT}"
 
 }
@@ -450,7 +450,7 @@ verbose "Output name is $OUTPUT"
 for arg
 do
 #if argu
-if [[ "$arg" =~ ^http ]] && ![ -f "$1" ]; then
+if [[ "$arg" =~ ^http ]] && ! [ -f "$arg" ]; then
 verbose "Downloading $arg"
 max_file
 wget --quiet -O - "$arg" > "${TMP}/${TMPFILE}" || err "Download of $arg failed"

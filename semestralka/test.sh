@@ -1,4 +1,5 @@
 #!/bin/bash
+#single and double digit tests are valid, triple digit tests are error producing
 type exiftool || echo "you should install exiftool show mediafiles metadata"
 rm -rf ./dots*
 for arg; do
@@ -239,7 +240,7 @@ exiftool -directory -filename -filetype -filesize -duration -videoframerate ./do
 
 28) echo "#################################################################"
 echo "Valid input"
-echo "-S 50 and -T 10 is used to test case where there is few frames but we want animatiion to be long"
+echo "-S 50 and -T 10 is used to test case where there is few frames but we want animation to be long"
 echo "#################################################################"
 ./animator -v -S 50 -T 10 sin_small.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
@@ -252,13 +253,27 @@ echo "#################################################################"
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
 30) echo "#################################################################"
+echo "Valid input file with timeforamt matching the default"
+echo "-n is used to specify a folder for output which contains a space"
+echo "#################################################################"
+./animator -v -n "dots space" ./sin_small.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots\ space/anim.mp4 2>/dev/null;;
+
+31) echo "#################################################################"
+echo "Valid input file with timeformat matching the default, but its name starts with http which should not make script confused"
+echo "#################################################################"
+./animator -v ./http.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
+
+101) echo "#################################################################"
 echo "Valid input matching default timeformat"
 echo "-e invalid number of gnuplot point"
 echo "#################################################################"
 ./animator -v -e "modulo=10:type=201" sin_small.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
-31) echo "#################################################################"
+102) echo "#################################################################"
 echo "Testing one valid input file with timeformat not matching the default"
 echo "-v is used"
 echo "-t '[%Y/%m/%d %H:%M:%S]' is used to set timeformat"
@@ -266,7 +281,7 @@ echo "#################################################################"
 ./animator -v -t '[%Y/%m/%d %H:%M:%S]' sin_week_int.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
-32) echo "#################################################################"
+103) echo "#################################################################"
 echo "Testing one valid input file with timeformat not matching the default"
 echo "-v is used"
 echo "-t '[%Y/%m/%d %H:%M:%S]' is used to set timeformat"
@@ -274,7 +289,7 @@ echo "#################################################################"
 ./animator -v -t '[%Y/%m/%d %H:%M:%S]' sin_week_int_part.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
-33) echo "#################################################################"
+104) echo "#################################################################"
 echo "Testing one valid input file with timeformat not matching the default"
 echo "-v is used"
 echo "-t '[%Y/%m/%d %H:%M:%S]'is used to set timeformat"
@@ -282,7 +297,7 @@ echo "#################################################################"
 ./animator -v -t '[%Y/%m/%d %H:%M:%S]' sin_week_real.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
-34) echo "#################################################################"
+105) echo "#################################################################"
 echo "Testing one valid input file with timeformat not matching the default"
 echo "-v is used"
 echo "-t '[%Y/%m/%d %H:%M:%S]' is used to set timeformat"
@@ -290,93 +305,93 @@ echo "#################################################################"
 ./animator -v -t '[%Y/%m/%d %H:%M:%S]' sin_week_real_part.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
-35) echo "#################################################################"
+106) echo "#################################################################"
 echo "Testing one valid input file with timeformat matching the default but -t is used to produce error in timeformat mismatch"
 echo "-v is used"
 echo "-t '[%H:%M:%S %d.%m.%Y]' is used to set timeformat"
 echo "#################################################################"
 ./animator -v -t '[%H:%M:%S %d.%m.%Y]' sin_small.data;;
 
-36) echo "#################################################################"
+107) echo "#################################################################"
 echo "Testing one invalid input file where timeformat matches default but some lines are misordered"
 echo "-v is used"
 echo "#################################################################"
 ./animator -v sin_noncontinuous.data;;
 
-37) echo "#################################################################"
+108) echo "#################################################################"
 echo "Testing two valid input files where timeformat matches default but files overlap"
 echo "-v is used"
 echo "#################################################################"
 ./animator -v sin_small.data sin_small.data;;
 
-38) echo "#################################################################"
+109) echo "#################################################################"
 echo "Testing one valid input file where timeformat matches default but -S is used with wrong val"
 echo "-v is used"
 echo "-S superquick"
 echo "#################################################################"
 ./animator -v -S superquick sin_small.data;;
 
-39) echo "#################################################################"
+110) echo "#################################################################"
 echo "Testing one valid input file where timeformat matches default but -f used with invalid path"
 echo "-v is used"
 echo "-f nothingherer"
 echo "#################################################################"
 ./animator -v -f nothinghere sin_small.data;;
 
-40) echo "#################################################################"
+111) echo "#################################################################"
 echo "Testing one valid input file where timeformat matches default but -f used with unreadable file"
 echo "-v is used"
 echo "-f /etc/shadow"
 echo "#################################################################"
 ./animator -v -f /etc/shadow sin_small.data;;
 
-41) echo "#################################################################"
+112) echo "#################################################################"
 echo "Testing one valid input file where timeformat matches default but -f used with unreadable file"
 echo "-v is used"
 echo "-f empty.cfg"
 echo "#################################################################"
 ./animator -v -f empty.cfg sin_small.data;;
 
-42) echo "#################################################################"
+113) echo "#################################################################"
 echo "Testing one valid input file where timeformat matches default and one unreadable file"
 echo "-v is used"
 echo "#################################################################"
 ./animator -v sin_small.data /etc/shadow;;
 
-43) echo "#################################################################"
+114) echo "#################################################################"
 echo "Testing one valid input file where timeformat matches default and one nonexistent file "
 echo "-v is used"
 echo "#################################################################"
 ./animator -v sin_small.data ./nothere;;
 
-44) echo "#################################################################"
+115) echo "#################################################################"
 echo "Testing one valid input file where timeformat matches default and one nonexistent file "
 echo "-v is used"
 echo "-f empty.cfg"
 echo "#################################################################"
 ./animator -v sin_small.data ./nothere;;
 
-45) echo "#################################################################"
+116) echo "#################################################################"
 echo "Testing one valid input file where timeformat matches default and one empty file "
 echo "-v is used"
 echo "#################################################################"
 ./animator -v sin_small.data empty.data;;
 
-46) echo "#################################################################"
+117) echo "#################################################################"
 echo "Testing one valid input file where timeformat matches default and -S is zero"
 echo "-v is used"
 echo "-S 0"
 echo "#################################################################"
 ./animator -v -S 0 sin_small.data;;
 
-47) echo "#################################################################"
+118) echo "#################################################################"
 echo "Testing one valid input file where timeformat matches default and -S is zero"
 echo "-v is used"
 echo "-S 0.000"
 echo "#################################################################"
 ./animator -v -S 0.000 sin_small.data;;
 
-48) echo "#################################################################"
+119) echo "#################################################################"
 echo "Testing one valid input file with timeformat matching the default"
 echo "-v is used"
 echo "-S is used to set invalid negative speed"
@@ -384,7 +399,7 @@ echo "#################################################################"
 ./animator -v -S -2 sin_small.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
-49) echo "#################################################################"
+120) echo "#################################################################"
 echo "Testing one valid input file with timeformat matching the default"
 echo "-v is used"
 echo "-e with invalid key valua pair is used"
@@ -392,7 +407,7 @@ echo "#################################################################"
 ./animator -v -e "modulo=5" -e"thisiswrong=3" sin_small.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
-50) echo "#################################################################"
+121) echo "#################################################################"
 echo "Testing one valid input file with timeformat matching the default"
 echo "-v is used"
 echo "-e modulo way too large for 200 line input file is used"
@@ -400,7 +415,7 @@ echo "#################################################################"
 ./animator -v -e "modulo=300" sin_small.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
-51) echo "#################################################################"
+122) echo "#################################################################"
 echo "Testing one valid input file with timeformat matching the default"
 echo "-v is used"
 echo "-e modulo way too large for 200 line input file is used"
