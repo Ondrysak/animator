@@ -400,6 +400,16 @@ echo "#################################################################"
 ./animator -v -e "modulo=300" sin_small.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
+51) echo "#################################################################"
+echo "Testing one valid input file with timeformat matching the default"
+echo "-v is used"
+echo "-e modulo way too large for 200 line input file is used"
+echo " using || to test if exitcode is nonzero after producing an error"
+echo "#################################################################"
+./animator -v -e "modulo=300" sin_small.data || echo "EXIT CODE NONZERO, SOMETHING WENT WRONG!"
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
+
 
 *) echo "Invalid test number $arg" ;;
 esac
