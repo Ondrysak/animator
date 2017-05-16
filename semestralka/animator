@@ -224,6 +224,7 @@ function parse_eparams {
 function check_overlap {
 	local n
 	n=1
+  #if more than one file is present test for overlap using epoch conversion
 	while read line; do
   		firstepoch=$(echo "$line" | awk '{print $2}')
   		filename=$(echo "$line" | awk '{print $NF}')
@@ -453,6 +454,7 @@ verbose "Options loaded"
 verbose "Temp dir: $TMP"
 #validate loaded parametres
 validate_params
+#construct regex for check and substitue %Xx if needed
 format_regex
 
 
@@ -466,7 +468,7 @@ verbose "Output name is $OUTPUT"
 #loop all arguments
 for arg
 do
-#if argu
+#based on argument type process it 
 if [[ "$arg" =~ ^http ]] && ! [ -f "$arg" ]; then
  verbose "Downloading $arg"
  max_file
@@ -485,12 +487,12 @@ done
 #sort the files based on the first line
 sort -n "${TMP}/unsorted" >"${TMP}/sorted" || err "Something went wrong when sorting before merge"
 
-
+#check if supplied arguments do not overlap
 check_overlap
-
+#merge all input files into one big file
 merge_input
 
-
+#start generating the animation
 video "${TMP}/merge"
 verbose "Job is done!"
 ECODE=0
