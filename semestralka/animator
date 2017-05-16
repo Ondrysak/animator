@@ -97,6 +97,7 @@ function validate_params {
 	[[ "$TYPE" -le 200 ]] || err "type supplied via -e is bigger than 200"
 	[[ "$SPEED" =~ ^[0-9]+\.*[0-9]*$ ]] || err "speed must be either  positive integer or a positive float number"
 	[[ "$SPEED" =~ ^0\.*0*$ ]] && err "speed cannot be 0"
+  [[ -z "$NAME" ]] || [[ "$NAME" =~ \/ ]] && err "output folder name cannot be empty and cannot contain a slash"
 
 	
 	[[ "$TIME" =~ ((^[0-9]+\.*[0-9]*$)|(^$)) ]] || err "time must be either positive integer or a positive float number"

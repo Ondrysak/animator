@@ -535,6 +535,15 @@ echo "./animator -v sin_small_baddate.data"
 ./animator -v sin_small_baddate.data;; 
 
 
+122) echo "#################################################################"
+echo "Testing one valid input file with timeformat matching the default, but containing empty line"
+echo "-v is used"
+echo "-n is containing a slash"
+echo "#################################################################"
+echo './animator -v -n "dots/hello" sin_small.data'
+./animator -v -n "dots/hello" sin_small.data;;
+
+
 
 
 *) echo "Invalid test number $arg" ;;
