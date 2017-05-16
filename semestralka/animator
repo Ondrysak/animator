@@ -1,6 +1,6 @@
 #!/bin/bash
 # Script generating animation from input data
-
+# developed and tested on GNU bash, version 4.3.46(1)-release an GNU bash and perl 5, version 22, subversion 1 (v5.22.1)
 
 #I tested with this option on, maybe not needed, included to be sure
 shopt -s extglob
