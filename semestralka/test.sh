@@ -366,6 +366,18 @@ echo "./animator -v -t '[%Y/%m/%d %H:%M:%S]' sin_week_real_part.data"
 ./animator -v -t '[%Y/%m/%d %H:%M:%S]' sin_week_real_part.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
+40) echo "#################################################################"
+echo "Testing one valid input file with timeformat not matching the default"
+echo "-v is used"
+echo "-t '[%Y/%m/%d %H:%M:%S]' is used to set timeformat"
+echo "#################################################################"
+echo "./animator -v -t '[%Y/%m/%d %H:%M:%S]' sin_week_real_part.data"
+rm -f /tmp/anim
+ln -s "$PWD"/animator /tmp/anim
+/tmp/anim -v ./sin_small.data
+exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
+
+
 
 
 101) echo "#################################################################"

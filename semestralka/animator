@@ -60,8 +60,8 @@ function test_arg {
   #sad
   awk '{$NF=""; print $0}' "$1" | sed 's/ $//' | egrep -v "$FORMATREGEX" && err "Basic regex check of dates failed in file $1, preceeding lines failed the validation"
   #check dates using a perl script and output them in epoch format for a further inspection, dirname substitution is used because we have not PWD guarateed
-  awk '{$NF=""; print $0}' "$1" | sed 's/ $//' | "$(dirname "$0")"/datestd.pl "$TIMEFORMAT" >"${TMP}/epoch" 2>/dev/null || err "Date in $1 is not in correct format"
-  #awk '{$NF=""; print $0}' "$1" | "$(dirname "$0")"/datestd.pl "$TIMEFORMAT" 
+  awk '{$NF=""; print $0}' "$1" | sed 's/ $//' | "$(dirname $(readlink -f "$BASH_SOURCE"))"/datestd.pl "$TIMEFORMAT" >"${TMP}/epoch" 2>/dev/null || err "Date in $1 is not in correct format"
+  #awk '{$NF=""; print $0}' "$1" | "$(dirname $(readlink -f "$BASH_SOURCE"))"/datestd.pl "$TIMEFORMAT" 
 	#inspect if the order is right
 	local epoch
 	local k
@@ -100,7 +100,7 @@ function validate_params {
 	[[ "$SPEED" =~ ^[0-9]+\.*[0-9]*$ ]] || err "speed must be either  positive integer or a positive float number"
 	[[ "$SPEED" =~ ^0\.*0*$ ]] && err "speed cannot be 0"
   [[ -z "$NAME" ]] || [[ "$NAME" =~ \/ ]] && err "output folder name cannot be empty and cannot contain a slash"
-
+  [[ -z "$TIMEFORMAT" ]] && err "Timeformat cannot be empty string"
 	
 	[[ "$TIME" =~ ((^[0-9]+\.*[0-9]*$)|(^$)) ]] || err "time must be either positive integer or a positive float number"
 	[[ "$YMIN" =~ ((^auto$)|(^min$)|(^-*[0-9]+\.*[0-9]*$)) ]] || err "ymin must be either integer, float number, min, max or auto"
@@ -163,8 +163,8 @@ function process_arg {
     local lastepoch
 
     #converting first and last date to epoch
-    firstepoch="$("$(dirname "$0")"/dates.pl "$TIMEFORMAT" "$firstdate")" || err "Date on first line of $arg is not in correct format"
-    lastepoch="$("$(dirname "$0")"/dates.pl "$TIMEFORMAT" "$lastdate")" || err "Date on last line of $arg is not in correct format"
+    firstepoch="$("$(dirname $(readlink -f "$BASH_SOURCE"))"/dates.pl "$TIMEFORMAT" "$firstdate")" || err "Date on first line of $arg is not in correct format"
+    lastepoch="$("$(dirname $(readlink -f "$BASH_SOURCE"))"/dates.pl "$TIMEFORMAT" "$lastdate")" || err "Date on last line of $arg is not in correct format"
     #file to be sorted later
     echo "$firstepoch" "$lastepoch" "$1">>"${TMP}/unsorted" || err "Something went wrong when processing arguments"
 
