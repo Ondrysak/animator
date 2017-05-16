@@ -520,6 +520,23 @@ echo "./animator -v -T -2 sin_small.data"
 ./animator -v -T -2 sin_small.data;;
 
 
+120) echo "#################################################################"
+echo "Testing one valid input file with timeformat matching the default, but containing empty line"
+echo "-v is used"
+echo "#################################################################"
+echo "./animator -v sin_small_whitespace.data"
+./animator -v sin_small_whitespace.data;; 
+
+121) echo "#################################################################"
+echo "Testing one valid input file with timeformat matching the default, but containing empty line"
+echo "-v is used"
+echo "#################################################################"
+echo "./animator -v sin_small_baddate.data"
+./animator -v sin_small_baddate.data;; 
+
+
+
+
 *) echo "Invalid test number $arg" ;;
 esac
 done
