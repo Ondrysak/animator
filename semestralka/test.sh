@@ -126,7 +126,7 @@ echo "-v is used"
 echo "-Y max is used to set ymax to maximum"
 echo "-y -2 is used to set ymin to -2"
 echo "#################################################################"
-"./animator -v -Y max -y -2 sin_small.data"
+echo "./animator -v -Y max -y -2 sin_small.data"
 ./animator -v -Y max -y -2 sin_small.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
@@ -135,7 +135,7 @@ echo "Testing one valid input file with timeformat not matching the default"
 echo "-v is used"
 echo "-t '[%H:%M:%S %d.%m.%Y]' is used to set timeformat"
 echo "#################################################################"
-"./animator -v -t '[%H:%M:%S %d.%m.%Y]' web.data"
+echo "./animator -v -t '[%H:%M:%S %d.%m.%Y]' web.data"
 ./animator -v -t '[%H:%M:%S %d.%m.%Y]' web.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
@@ -170,7 +170,7 @@ exiftool -directory -filename -filetype -filesize -duration -videoframerate ./do
 echo "Testing one valid file with timeformat matching the default default and not containing year month or day"
 echo "-v is used"
 echo "-f config.cfg is used to specify config file YMax 5 YMin -5 Speed 3 Time 10"
-echo "-Y 3 is used to set ymax to 3 overriding config"
+echo "-Y 3.5 is used to set ymax to 3 overriding config"
 echo "-y min is used to set ymin to min overriding config"
 echo "#################################################################"
 echo "./animator -v -Y 3.5 -y min -f config.cfg sin_small.data"
@@ -240,7 +240,7 @@ echo "-v is used"
 echo "-S 0.2 to slowdown a bit"
 echo "#################################################################"
 echo './animator -v -t "%x %X" -S 0.2 ./%xX_mini.data'
-./animator -v -t "%x %X" -S 0.2 ./%xX_mini.data
+./animator -v -t "%x %X" -S 0.2 ./mini_%x%X.data
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 
 26) echo "#################################################################"
@@ -262,6 +262,7 @@ echo "Valid input file with newline in its name"
 echo "-v is used"
 echo "#################################################################"
 echo './animator -v "$(printf "sin\nsmall.data")"'
+cp sin_small.data "$(printf "sin\nsmall.data")"
 ./animator -v "$(printf "sin\nsmall.data")"
 exiftool -directory -filename -filetype -filesize -duration -videoframerate ./dots/anim.mp4 2>/dev/null;;
 

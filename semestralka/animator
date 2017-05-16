@@ -57,10 +57,11 @@ function test_arg {
 	[ -s "$1" ] || err "Data file '$1' is empty"
 	#test if last field (value) is in correct format
 	awk -F " " '{print $NF}' "$1" | egrep -v '^-?([0-9]+|[0-9]*\.[0-9]+)$' && err "Bad data format in $1, preceeding lines failed the validation"
-  #
+  #sad
   awk '{$NF=""; print $0}' "$1" | sed 's/ $//' | egrep -v "$FORMATREGEX" && err "Basic regex check of dates failed in file $1, preceeding lines failed the validation"
   #check dates using a perl script and output them in epoch format for a further inspection, dirname substitution is used because we have not PWD guarateed
-  awk '{$NF=""; print $0}' "$1" | "$(dirname "$0")"/datestd.pl "$TIMEFORMAT" >"${TMP}/epoch" 2>/dev/null || err "Date in $1 is not in correct format"	
+  awk '{$NF=""; print $0}' "$1" | sed 's/ $//' | "$(dirname "$0")"/datestd.pl "$TIMEFORMAT" >"${TMP}/epoch" 2>/dev/null || err "Date in $1 is not in correct format"
+  #awk '{$NF=""; print $0}' "$1" | "$(dirname "$0")"/datestd.pl "$TIMEFORMAT" 
 	#inspect if the order is right
 	local epoch
 	local k
@@ -79,9 +80,10 @@ function test_arg {
 
  
 function format_regex {
-
+#timeformat subsi
+TIMEFORMAT="$(echo "$TIMEFORMAT" | sed -E -e 's#%x#%d.%m.%Y#' -e 's/%X/%H:%M:%S/'  )"
 FORMATREGEX="$(echo "$TIMEFORMAT" | sed -E -e 's/\\/\\\\/g' -e 's/\^/\\^/g' -e 's/\$/\\$/g' -e 's/\{/\\{/g' -e 's/\}/\\}/g' -e 's/\[/\\[/g' -e 's/\]/\\]/g' -e 's/\(/\\(/g' -e 's/\)/\\)/g' -e 's/\./\\./g' -e 's/\*/\\*/g' -e 's/\+/\\+/g' -e 's/\&/\\&/g' )"
-FORMATREGEX="$(echo "$FORMATREGEX" | sed -E -e 's#%x#%d/%m/%y#' -e 's/%X/%H:%M:%S/'  )"
+FORMATREGEX="$(echo "$FORMATREGEX" | sed -E -e 's#%x#%d.%m.%Y#' -e 's/%X/%H:%M:%S/'  )"
 FORMATREGEX="$( echo "^${FORMATREGEX}$" | sed -E -e 's/%H/[0-9][0-9]/' -e 's/%M/[0-9][0-9]/' -e 's/%S/[0-9][0-9]/' -e 's/%Y/[0-9][0-9][0-9][0-9]/' -e 's/%y/[0-9][0-9]/' -e 's/%m/[0-9][0-9]/' -e 's/%d/[0-9][0-9]/' )"
 verbose "regex used for the first check of the input is $FORMATREGEX"
 }
@@ -155,10 +157,11 @@ function process_arg {
     verbose "Processing: $1"
     test_arg "$1"
     #first and last date in variable using 
-    firstdate="$(head -n1 "$1" | sed 's/ [^\ ]*$//')"
-    lastdate="$(tail -n1 "$1" | sed 's/ [^\ ]*$//')"
+    firstdate="$(head -n1 "$1" | awk '{$NF=""; print $0}' | sed 's/ $//')"
+    lastdate="$(tail -n1 "$1" | awk '{$NF=""; print $0}' | sed 's/ $//' )"
     local firstepoch
     local lastepoch
+
     #converting first and last date to epoch
     firstepoch="$("$(dirname "$0")"/dates.pl "$TIMEFORMAT" "$firstdate")" || err "Date on first line of $arg is not in correct format"
     lastepoch="$("$(dirname "$0")"/dates.pl "$TIMEFORMAT" "$lastdate")" || err "Date on last line of $arg is not in correct format"
@@ -303,7 +306,7 @@ function video {
     #calculate gnuplot offset with respect to number of spaces in timeformat
     sepoffset=$(( formatspaces + 2 ))
     #x and X not supported by gnuplot, substitute them according to en_GB locale
-    TIMEFORMAT="$(echo "$TIMEFORMAT" | sed -E -e 's#%x#%d/%m/%y#' -e 's/%X/%H:%M:%S/'  )"
+    TIMEFORMAT="$(echo "$TIMEFORMAT" | sed -E -e 's#%x#%d.%m.%Y#' -e 's/%X/%H:%M:%S/'  )"
   #used to indicate if we already did the final step containing all data
   local complete;
   complete=0  
@@ -312,7 +315,6 @@ function video {
 		{
 			cat <<-PLOT
 				set terminal png
-        set locale "en_GB.UTF-8"
         set timefmt "$TIMEFORMAT"
 				set xdata time
         set yrange [$YRANGE]
@@ -473,7 +475,7 @@ if [[ "$arg" =~ ^http ]] && ! [ -f "$arg" ]; then
 elif [[ "$arg" =~ [[:space:]] ]]; then
  verbose "Creating temporary copy of $arg, because its name contains spaces which makes AWK confused"
  max_file
-cp "$arg" "${TMP}/${TMPFILE}" || err "Something went wrong with copying to ${TMP}"
+ cp "$arg" "${TMP}/${TMPFILE}" || err "Something went wrong with copying to ${TMP}"
  process_arg "${TMP}/${TMPFILE}";	
 else
  process_arg "$arg";
