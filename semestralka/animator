@@ -57,11 +57,9 @@ function test_arg {
 	[ -s "$1" ] || err "Data file '$1' is empty"
 	#test if last field (value) is in correct format
 	awk -F " " '{print $NF}' "$1" | egrep -v '^-?([0-9]+|[0-9]*\.[0-9]+)$' && err "Bad data format in $1, preceeding lines failed the validation"
-  #sad
   awk '{$NF=""; print $0}' "$1" | sed 's/ $//' | egrep -v "$FORMATREGEX" && err "Basic regex check of dates failed in file $1, preceeding lines failed the validation"
   #check dates using a perl script and output them in epoch format for a further inspection, dirname substitution is used because we have not PWD guarateed
   awk '{$NF=""; print $0}' "$1" | sed 's/ $//' | "$(dirname $(readlink -f "$BASH_SOURCE"))"/datestd.pl "$TIMEFORMAT" >"${TMP}/epoch" 2>/dev/null || err "Date in $1 is not in correct format"
-  #awk '{$NF=""; print $0}' "$1" | "$(dirname $(readlink -f "$BASH_SOURCE"))"/datestd.pl "$TIMEFORMAT" 
 	#inspect if the order is right
 	local epoch
 	local k
@@ -74,18 +72,18 @@ function test_arg {
   		epoch="$line"
   		k=$((k+1))
 	done <"${TMP}/epoch"
-    verbose "Argument $1 checked!"
+  verbose "Argument $1 checked!"
 
 }
 
  
 function format_regex {
-#timeformat subsi
-TIMEFORMAT="$(echo "$TIMEFORMAT" | sed -E -e 's#%x#%d.%m.%Y#' -e 's/%X/%H:%M:%S/'  )"
-FORMATREGEX="$(echo "$TIMEFORMAT" | sed -E -e 's/\\/\\\\/g' -e 's/\^/\\^/g' -e 's/\$/\\$/g' -e 's/\{/\\{/g' -e 's/\}/\\}/g' -e 's/\[/\\[/g' -e 's/\]/\\]/g' -e 's/\(/\\(/g' -e 's/\)/\\)/g' -e 's/\./\\./g' -e 's/\*/\\*/g' -e 's/\+/\\+/g' -e 's/\&/\\&/g' )"
-FORMATREGEX="$(echo "$FORMATREGEX" | sed -E -e 's#%x#%d.%m.%Y#' -e 's/%X/%H:%M:%S/'  )"
-FORMATREGEX="$( echo "^${FORMATREGEX}$" | sed -E -e 's/%H/[0-9][0-9]/' -e 's/%M/[0-9][0-9]/' -e 's/%S/[0-9][0-9]/' -e 's/%Y/[0-9][0-9][0-9][0-9]/' -e 's/%y/[0-9][0-9]/' -e 's/%m/[0-9][0-9]/' -e 's/%d/[0-9][0-9]/' )"
-verbose "regex used for the first check of the input is $FORMATREGEX"
+  #timeformat subsi
+  TIMEFORMAT="$(echo "$TIMEFORMAT" | sed -E -e 's#%x#%d.%m.%Y#' -e 's/%X/%H:%M:%S/'  )"
+  FORMATREGEX="$(echo "$TIMEFORMAT" | sed -E -e 's/\\/\\\\/g' -e 's/\^/\\^/g' -e 's/\$/\\$/g' -e 's/\{/\\{/g' -e 's/\}/\\}/g' -e 's/\[/\\[/g' -e 's/\]/\\]/g' -e 's/\(/\\(/g' -e 's/\)/\\)/g' -e 's/\./\\./g' -e 's/\*/\\*/g' -e 's/\+/\\+/g' -e 's/\&/\\&/g' )"
+  FORMATREGEX="$(echo "$FORMATREGEX" | sed -E -e 's#%x#%d.%m.%Y#' -e 's/%X/%H:%M:%S/'  )"
+  FORMATREGEX="$( echo "^${FORMATREGEX}$" | sed -E -e 's/%H/[0-9][0-9]/' -e 's/%M/[0-9][0-9]/' -e 's/%S/[0-9][0-9]/' -e 's/%Y/[0-9][0-9][0-9][0-9]/' -e 's/%y/[0-9][0-9]/' -e 's/%m/[0-9][0-9]/' -e 's/%d/[0-9][0-9]/' )"
+  verbose "regex used for the first check of the input is $FORMATREGEX"
 }
 
 function validate_params {
@@ -120,58 +118,58 @@ function preq {
 }
 
 function max_folder {
-  	local max
-  	local temp
-  	max=0
-  	#find max folder suffix
-  	for file in *
-  	do
-    	temp=$(echo "$file" | grep -E "^$1_[0-9]+$" | sed "s/${1}_//")
-    	[[ $max -lt $temp ]] && max=$temp
-  	done
-  	#increment it by one
-  	max="$((max + 1))"
-  	mkdir "${1}_${max}" 2>/dev/null || err "Could not create folder ${1}_${max}"
-  	#set new NAME using calculated suffix
-  	NAME="${1}_${max}"
+ 	local max
+ 	local temp
+ 	max=0
+ 	#find max folder suffix
+ 	for file in *
+ 	do
+   	temp=$(echo "$file" | grep -E "^$1_[0-9]+$" | sed "s/${1}_//")
+   	[[ $max -lt $temp ]] && max=$temp
+ 	done
+ 	#increment it by one
+ 	max="$((max + 1))"
+ 	mkdir "${1}_${max}" 2>/dev/null || err "Could not create folder ${1}_${max}"
+ 	#set new NAME using calculated suffix
+ 	NAME="${1}_${max}"
 }
 
 function max_file {
-  	local max
-  	local temp
-  	#if tmp file exists find max file suffix
-  	if [[ -f "${TMP}/${TMPFILE}" ]]; then
-  		max=0
-  		for file in "${TMP}"*
-  		do
-    		temp=$(echo "$file" | grep -E "^${TMPFILE}_[0-9]+$" | sed "s/${TMPFILE}_//")
-    		[[ -f $file  ]] && [[ $max -lt $temp ]] && max=$temp
-  		done
-  		max="$((max + 1))"
-  		#set new tmpfilename using calculated suffix
-  		TMPFILE="${TMPFILE}_${max}";
-  	fi
+ 	local max
+ 	local temp
+ 	#if tmp file exists find max file suffix
+ 	if [[ -f "${TMP}/${TMPFILE}" ]]; then
+ 		max=0
+ 		for file in "${TMP}"*
+ 		do
+   		temp=$(echo "$file" | grep -E "^${TMPFILE}_[0-9]+$" | sed "s/${TMPFILE}_//")
+   		[[ -f $file  ]] && [[ $max -lt $temp ]] && max=$temp
+ 		done
+ 		max="$((max + 1))"
+ 		#set new tmpfilename using calculated suffix
+ 		TMPFILE="${TMPFILE}_${max}";
+ 	fi
 }
 function process_arg {
 
-    verbose "Processing: $1"
-    test_arg "$1"
-    #first and last date in variable using 
-    firstdate="$(head -n1 "$1" | awk '{$NF=""; print $0}' | sed 's/ $//')"
-    lastdate="$(tail -n1 "$1" | awk '{$NF=""; print $0}' | sed 's/ $//' )"
-    local firstepoch
-    local lastepoch
+  verbose "Processing: $1"
+  test_arg "$1"
+  #first and last date in variable using 
+  firstdate="$(head -n1 "$1" | awk '{$NF=""; print $0}' | sed 's/ $//')"
+  lastdate="$(tail -n1 "$1" | awk '{$NF=""; print $0}' | sed 's/ $//' )"
+  local firstepoch
+  local lastepoch
 
-    #converting first and last date to epoch
-    firstepoch="$("$(dirname $(readlink -f "$BASH_SOURCE"))"/dates.pl "$TIMEFORMAT" "$firstdate")" || err "Date on first line of $arg is not in correct format"
-    lastepoch="$("$(dirname $(readlink -f "$BASH_SOURCE"))"/dates.pl "$TIMEFORMAT" "$lastdate")" || err "Date on last line of $arg is not in correct format"
-    #file to be sorted later
-    echo "$firstepoch" "$lastepoch" "$1">>"${TMP}/unsorted" || err "Something went wrong when processing arguments"
+  #converting first and last date to epoch
+  firstepoch="$("$(dirname $(readlink -f "$BASH_SOURCE"))"/dates.pl "$TIMEFORMAT" "$firstdate")" || err "Date on first line of $arg is not in correct format"
+  lastepoch="$("$(dirname $(readlink -f "$BASH_SOURCE"))"/dates.pl "$TIMEFORMAT" "$lastdate")" || err "Date on last line of $arg is not in correct format"
+  #file to be sorted later
+  echo "$firstepoch" "$lastepoch" "$1">>"${TMP}/unsorted" || err "Something went wrong when processing arguments"
 
 }
 
 function load_config {
-    #do some basic checks
+  #do some basic checks
 	verbose "Loading config from $1"
 	[ -n "$1" ] || err "Empty config argument"
 	[ -f "$1" ] || err "Config '$1' is not a file"
@@ -186,7 +184,7 @@ function load_config {
 	#directive effectparams can be present more than once and all must be applied
   grep '^EFFECTPARAMS' "${TMP}/config" > "${TMP}/eparams" 
   [[ -f "${TMP}/eparams" ]] || err "Something went wrong when processing config"
-  #just in case, effect params was present with more keys 
+  #just in case, effect params was present with different key each time 
   while read singleparam; do
     echo "$singleparam">"${TMP}/singleparam" || err "Something went wrong when loading config (singleparam creating) "
     source "${TMP}/singleparam" || err "Something went wrong when loading config (singleparam sourcing)."
